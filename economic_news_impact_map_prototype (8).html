@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Market Lens</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;background:#f5f7fb;color:#0f172a}
+    .app{min-height:100vh;display:flex;justify-content:center;align-items:center;padding:28px 18px}
+    .shell{width:100%;max-width:1240px;min-height:880px;background:#fff;border:1px solid #e2e8f0;border-radius:32px;box-shadow:0 24px 70px rgba(15,23,42,.08);overflow:hidden}
+    .screen{display:none;min-height:880px;padding:46px}.screen.active{display:block}
+    .hero{min-height:788px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+    .eyebrow{font-size:.92rem;font-weight:800;color:#2563eb;margin-bottom:14px}
+    h1{margin:0;font-size:3.05rem;line-height:1.14;letter-spacing:-.04em}.subtext{max-width:780px;margin:18px auto 0;color:#64748b;font-size:1.04rem;line-height:1.8}
+    .guide{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:20px}.pill{padding:9px 13px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-size:.9rem;font-weight:800}
+    .input-panel{width:100%;max-width:900px;margin-top:34px;background:#fff;border:1px solid #dbe2ea;border-radius:28px;padding:20px;box-shadow:0 14px 34px rgba(15,23,42,.06);text-align:left}.field{margin-bottom:14px}.field:last-child{margin-bottom:0}.label{display:block;font-size:.92rem;font-weight:800;color:#334155;margin-bottom:10px}
+    input,textarea{width:100%;border:1px solid #e2e8f0;border-radius:18px;padding:15px 16px;outline:none;font:inherit;color:#0f172a;transition:.18s ease}textarea{min-height:92px;resize:vertical;line-height:1.7}input:focus,textarea:focus{border-color:#60a5fa;box-shadow:0 0 0 4px rgba(96,165,250,.12)}
+    .row{display:flex;gap:12px;align-items:center}.btn{border:none;border-radius:999px;padding:13px 20px;font-size:.96rem;font-weight:800;cursor:pointer;transition:.18s ease;white-space:nowrap;font-family:inherit}.btn:hover{transform:translateY(-1px)}.btn-primary{background:#2563eb;color:white}.btn-soft{background:#eff6ff;color:#1d4ed8}.note{margin-top:14px;color:#64748b;font-size:.9rem;line-height:1.65}.warn{margin-top:14px;color:#dc2626;font-size:.9rem;font-weight:800}
+    .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:26px}.title h2{margin:0;font-size:1.9rem;letter-spacing:-.035em}.title p{margin:8px 0 0;color:#64748b;line-height:1.65}.ghost{border:none;background:transparent;color:#475569;font:inherit;cursor:pointer}
+    .card{background:#fff;border:1px solid #e2e8f0;border-radius:28px;padding:24px;box-shadow:0 16px 38px rgba(15,23,42,.05)}.article-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:20px;padding:18px;margin-bottom:20px}.small{font-size:.82rem;font-weight:800;color:#2563eb;margin-bottom:8px}.article-title{font-size:1.1rem;font-weight:800;line-height:1.55}.article-link{margin-top:8px;color:#64748b;font-size:.88rem;word-break:break-all}.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.badge{display:inline-block;padding:7px 11px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-size:.82rem;font-weight:800}.badge.gray{background:#f8fafc;color:#475569;border:1px solid #e2e8f0}
+    .summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.summary-item{background:#f8fafc;border:1px solid #e2e8f0;border-radius:20px;padding:18px}.summary-item .num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#2563eb;color:white;font-weight:900;font-size:.86rem;margin-bottom:12px}.summary-item h3{margin:0 0 8px;font-size:1rem}.summary-item p{margin:0;color:#475569;line-height:1.7;font-size:.94rem}.actions{display:flex;justify-content:center;gap:12px;margin-top:24px;flex-wrap:wrap}
+    .dash{display:grid;gap:20px}.flow{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:#f8fbff;border:1px solid #dbeafe;border-radius:22px;padding:18px 20px;color:#1e3a8a;font-weight:900}.arrow{color:#60a5fa;font-size:1.2rem}
+    .panel-grid{display:grid;grid-template-columns:1.1fr .9fr;gap:20px}.section-title{margin:0 0 14px;font-size:1.16rem;letter-spacing:-.02em}.muted{color:#64748b;font-size:.9rem;line-height:1.65;margin:0 0 14px}
+    .meter-list{display:grid;gap:13px}.meter-row{display:grid;grid-template-columns:120px 1fr 46px;align-items:center;gap:12px}.meter-row span:first-child{font-weight:800;color:#334155}.meter{height:12px;background:#e2e8f0;border-radius:999px;overflow:hidden}.meter-fill{height:100%;background:linear-gradient(90deg,#93c5fd,#2563eb);border-radius:999px;transition:.6s ease}.score{text-align:right;color:#475569;font-weight:800;font-size:.9rem}
+    .sentiment{display:grid;grid-template-columns:110px 1fr;gap:14px;align-items:center}.gauge{width:100px;height:100px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:2rem;background:conic-gradient(#2563eb 0deg,#2563eb var(--deg),#e2e8f0 var(--deg),#e2e8f0 360deg)}.gauge-inner{width:76px;height:76px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center}.sentiment h3{margin:0 0 6px;font-size:1.3rem}.sentiment p{margin:0;color:#475569;line-height:1.7;font-size:.95rem}
+    .chart-wrap{height:240px;border:1px solid #e2e8f0;background:#f8fafc;border-radius:20px;padding:14px}.chart-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-weight:800}.chart-title span:last-child{font-size:.88rem;color:#64748b;font-weight:700}.chart{width:100%;height:180px}.line{fill:none;stroke:#2563eb;stroke-width:4;stroke-linecap:round;stroke-linejoin:round}.area{fill:rgba(37,99,235,.1)}.axis{stroke:#cbd5e1;stroke-width:1}.dot{fill:#2563eb}
+    .impact-table{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.impact-box{border:1px solid #e2e8f0;border-radius:24px;padding:20px;background:#fff}.impact-box.good{background:linear-gradient(180deg,#fff 0%,#f0fdf4 100%)}.impact-box.bad{background:linear-gradient(180deg,#fff 0%,#fef2f2 100%)}.impact-box.watch{background:linear-gradient(180deg,#fff 0%,#fff7ed 100%)}.impact-box h3{margin:0 0 12px;font-size:1.08rem}.impact-box ul{margin:0;padding-left:18px;color:#334155;line-height:1.75;font-size:.94rem}
+    .heatmap{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.heat{border-radius:18px;padding:16px;border:1px solid #e2e8f0;min-height:104px}.heat strong{display:block;margin-bottom:8px}.heat p{margin:0;font-size:.88rem;line-height:1.55;color:#475569}.pos{background:#ecfdf5}.neg{background:#fef2f2}.mid{background:#fff7ed}.neu{background:#f8fafc}
+    .timeline{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.time-card{border:1px solid #e2e8f0;border-radius:22px;padding:18px;background:#fff}.time-card h3{margin:0 0 10px;font-size:1.02rem}.time-card p{margin:0;color:#475569;line-height:1.7;font-size:.94rem}
+    .two{display:grid;grid-template-columns:1.05fr .95fr;gap:20px}.checklist{display:grid;gap:12px}.check{display:flex;gap:12px;align-items:flex-start;background:#f8fafc;border:1px solid #e2e8f0;border-radius:18px;padding:15px}.check .icon{font-size:1.2rem}.check strong{display:block;margin-bottom:4px}.check p{margin:0;color:#475569;line-height:1.65;font-size:.93rem}.signal{display:grid;gap:12px}.signal-row{display:flex;justify-content:space-between;gap:12px;align-items:center;border:1px solid #e2e8f0;border-radius:18px;padding:14px;background:#f8fafc}.signal-row span:first-child{font-weight:800}.signal-row .value{font-size:.9rem;color:#475569;text-align:right}.disclaimer{margin-top:16px;color:#64748b;font-size:.84rem;line-height:1.6;text-align:center}
+    @media(max-width:980px){.screen{padding:28px}h1{font-size:2.25rem}.summary-grid,.impact-table,.two,.panel-grid,.timeline,.heatmap{grid-template-columns:1fr}}
+    @media(max-width:720px){.shell{border-radius:24px;min-height:auto}.screen{padding:22px;min-height:auto}.hero{min-height:760px}.row{flex-direction:column;align-items:stretch}.btn{width:100%}.meter-row{grid-template-columns:90px 1fr 40px}}
+  </style>
+</head>
+<body>
+<div class="app"><div class="shell">
+  <section class="screen active" id="home">
+    <div class="hero">
+      <div class="eyebrow">개인 투자자를 위한 뉴스 기반 시장 해석</div>
+      <h1>이 뉴스가<br>주식시장에 미치는 영향은?</h1>
+      <p class="subtext">경제 뉴스의 핵심 변수를 추출하고, 업종별 영향·시장 심리·시간축·관찰 지표까지 한 화면에서 정리해주는 분석형 웹사이트입니다.</p>
+      <div class="guide"><span class="pill">시장 변수 추출</span><span class="pill">영향도 그래프</span><span class="pill">업종 히트맵</span><span class="pill">시장 심리</span><span class="pill">시간축 분석</span></div>
+      <div class="input-panel">
+        <div class="field"><label class="label" for="newsTitle">기사 제목</label><input id="newsTitle" placeholder="예: 연준 금리 인하 기대 후퇴에 나스닥 하락" /></div>
+        <div class="field"><label class="label" for="newsLink">기사 링크</label><div class="row"><input id="newsLink" placeholder="https://example.com/article" /><button class="btn btn-primary" id="analyzeBtn">분석하기</button></div></div>
+        <div class="field"><label class="label" for="tickerHint">관심 종목/업종 (선택)</label><textarea id="tickerHint" placeholder="예: 삼성전자, SK하이닉스, 2차전지, 항공주, 은행주 등"></textarea></div>
+        <div class="note">현재 버전은 제목과 입력 단서를 기반으로 시장 영향 시나리오를 생성합니다. 특정 종목의 매수·매도 추천이 아닌 뉴스 해석 보조 도구입니다.</div>
+      </div>
+      <div class="warn" id="homeWarn"></div>
+    </div>
+  </section>
+
+  <section class="screen" id="summary">
+    <div class="topbar"><div class="title"><h2>시장 영향 요약</h2><p>뉴스가 주식시장에 미칠 수 있는 핵심 영향을 먼저 정리했습니다.</p></div><button class="ghost" id="back1">← 처음으로</button></div>
+    <div class="card">
+      <div class="article-box"><div class="small">입력한 뉴스</div><div class="article-title" id="outTitle"></div><div class="article-link" id="outLink"></div><div class="badges"><span class="badge" id="outTheme"></span><span class="badge gray" id="outDirection"></span></div></div>
+      <div class="summary-grid" id="summaryGrid"></div>
+      <div class="actions"><button class="btn btn-soft" id="back2">다시 입력하기</button><button class="btn btn-primary" id="goDashboard">분석 대시보드 보기</button></div>
+    </div>
+  </section>
+
+  <section class="screen" id="dashboard">
+    <div class="topbar"><div class="title"><h2>시장 영향 분석 대시보드</h2><p>뉴스의 시장 파급효과를 영향도, 업종, 심리, 시간축으로 나누어 시각화했습니다.</p></div><button class="ghost" id="backSummary">← 요약으로</button></div>
+    <div class="dash">
+      <div class="flow" id="flow"></div>
+      <div class="panel-grid">
+        <div class="card"><h3 class="section-title">시장 변수 영향도</h3><p class="muted">뉴스가 어떤 시장 변수에 더 크게 작용할 수 있는지 점수화한 그래프입니다.</p><div class="meter-list" id="meters"></div></div>
+        <div class="card"><h3 class="section-title">시장 심리 지표</h3><div class="sentiment"><div class="gauge" id="gauge"><div class="gauge-inner" id="gaugeIcon">⚖️</div></div><div><h3 id="sentimentTitle">Mixed</h3><p id="sentimentText"></p></div></div></div>
+      </div>
+      <div class="card"><h3 class="section-title">관련 종목 흐름 시뮬레이션</h3><p class="muted">실시간 데이터가 아닌, 뉴스 충격 이후 가능한 주가 반응을 시각화한 예시 차트입니다.</p><div class="chart-wrap"><div class="chart-title"><span id="chartName">대표 관련 종목</span><span>news impact simulation</span></div><svg class="chart" viewBox="0 0 700 180" preserveAspectRatio="none" id="chartSvg"></svg></div></div>
+      <div class="impact-table">
+        <div class="impact-box good"><h3>📈 긍정 가능 업종</h3><ul id="positiveList"></ul></div>
+        <div class="impact-box bad"><h3>📉 부정 가능 업종</h3><ul id="negativeList"></ul></div>
+        <div class="impact-box watch"><h3>⚠️ 변동성 확대</h3><ul id="volatileList"></ul></div>
+      </div>
+      <div class="card"><h3 class="section-title">업종 영향 히트맵</h3><div class="heatmap" id="heatmap"></div></div>
+      <div class="card"><h3 class="section-title">시간축별 시장 반응</h3><div class="timeline" id="timeline"></div></div>
+      <div class="two">
+        <div class="card"><h3 class="section-title">시장 해석 포인트</h3><div class="checklist" id="checklist"></div></div>
+        <div class="card"><h3 class="section-title">후속 관찰 지표</h3><div class="signal" id="signals"></div></div>
+      </div>
+      <div class="disclaimer">본 화면은 뉴스 해석과 학습을 위한 보조 도구이며, 특정 종목의 매수·매도 추천이 아닙니다.</div>
+    </div>
+  </section>
+</div></div>
+<script>
+const DATA={
+  rate:{theme:'금리·통화정책',flow:['금리 기대 변화','할인율 변화','성장주/채권 영향','증시 밸류에이션 조정'],positive:['은행·보험: 금리 상승 시 이자마진 기대','단기채·현금성 자산: 방어적 선택지로 관심','가치주·배당주: 성장주 대비 상대적 선호 가능'],negative:['성장주·기술주: 높은 할인율은 밸류에이션 부담','부동산·리츠: 자금조달 비용 상승 부담','부채비율 높은 기업: 이자비용 증가 우려'],volatile:['나스닥·코스닥 성장주','2차전지·바이오 등 장기 성장 기대 업종','금리 민감 부동산 관련주'],signals:['미국 10년물 국채금리','FOMC 발언과 점도표','CPI/PCE 물가 지표','원·달러 환율'],summary:['금리 기대 변화는 주식시장의 할인율을 바꿉니다.','성장주는 미래 이익 비중이 커서 금리 변화에 민감합니다.','금리 인하 기대가 후퇴하면 위험자산 선호가 약해질 수 있습니다.'],meters:{금리:92,환율:54,유가:28,심리:76},sentiment:['Risk Off','금리 부담이 커지는 국면에서는 투자자들이 성장주보다 방어적 자산을 선호할 수 있습니다.',270,'🛡️'],chart:'나스닥/성장주',chartData:[100,98,96,95,93,94,92,91,93,92],heat:['성장주:-','은행:+','리츠:-','배당주:+','바이오:-','채권:±','부동산:-','보험:+'],timeline:['단기: 성장주와 기술주 중심의 변동성 확대 가능','중기: 대출 부담과 소비 둔화 우려가 실적 전망에 반영','장기: 물가 안정 확인 시 금리 인하 기대 재형성 가능']},
+  fx:{theme:'환율·외환',flow:['환율 변화','수입원가/수출환산익 변화','외국인 수급 변화','업종별 주가 차별화'],positive:['수출주: 원화 약세 시 환산이익 개선 기대','자동차·IT 수출기업: 가격경쟁력 개선 가능','달러 매출 비중 높은 기업'],negative:['항공·여행: 달러 비용과 유류비 부담','수입 원재료 비중 높은 음식료·유통','외화부채 많은 기업'],volatile:['외국인 수급 민감 대형주','항공·여행·면세','수출주와 내수주의 상대 강도'],signals:['원·달러 환율','달러인덱스 DXY','외국인 순매수/순매도','무역수지'],summary:['환율은 수출기업과 수입기업에 반대 방향으로 영향을 줍니다.','원화 약세는 수출주에 유리할 수 있지만 수입물가 부담을 키웁니다.','환율 급등은 외국인 수급 변동성을 높일 수 있습니다.'],meters:{금리:45,환율:96,유가:38,심리:68},sentiment:['Mixed','환율 상승은 수출주에는 긍정적일 수 있지만 수입물가와 외국인 수급에는 부담이 됩니다.',215,'⚖️'],chart:'수출 대형주',chartData:[100,101,103,102,104,105,103,106,105,107],heat:['수출주:+','항공:-','여행:-','자동차:+','음식료:-','반도체:+','면세:±','외화부채:-'],timeline:['단기: 외국인 수급과 대형주 변동성 확대','중기: 수출기업 환산이익과 수입기업 원가 부담 반영','장기: 환율 안정 여부가 밸류에이션 회복의 핵심']},
+  oil:{theme:'유가·원자재',flow:['유가 변화','연료비/생산비 변화','물가 압력 변화','업종별 수익성 차별화'],positive:['정유·에너지: 유가 상승 수혜 기대','방산·자원개발: 지정학 리스크 때 관심 확대','조선 일부: 에너지 투자 확대 기대'],negative:['항공·운송: 연료비 부담 증가','화학: 원재료 비용 상승 부담','소비재: 물가 부담에 소비 둔화 가능'],volatile:['정유·항공 동시 변동성','인플레이션 민감 성장주','원자재 ETF 관련 종목'],signals:['WTI/브렌트유 가격','천연가스 가격','기대인플레이션','중동 지정학 뉴스'],summary:['유가 상승은 에너지 기업에는 호재일 수 있지만 비용 부담 업종에는 악재입니다.','유가가 물가를 자극하면 금리 인하 기대가 약해질 수 있습니다.','업종별로 수혜와 피해가 뚜렷하게 갈리는 뉴스입니다.'],meters:{금리:58,환율:42,유가:97,심리:72},sentiment:['Risk Off','원자재 가격 충격은 물가와 비용 부담을 동시에 자극해 시장 변동성을 높일 수 있습니다.',250,'🛢️'],chart:'정유/에너지',chartData:[100,101,103,106,105,108,109,107,110,112],heat:['정유:+','항공:-','화학:-','방산:+','운송:-','조선:+','소비재:-','에너지:+'],timeline:['단기: 정유·항공 등 유가 민감 업종 급변 가능','중기: 기업 원가와 소비자 물가 압력으로 확산','장기: 인플레이션과 금리 경로에 영향']},
+  trade:{theme:'무역·공급망',flow:['관세/규제 변화','조달비용 변화','기업 실적 전망 변화','관련 업종 재평가'],positive:['국산 대체재 기업: 공급망 재편 수혜 가능','일부 소재·부품·장비 기업','방어적 내수 업종'],negative:['수출 의존 기업: 관세와 규제 부담','중국 매출 비중 높은 기업','부품 수입 의존 제조업'],volatile:['반도체·전기차·배터리 공급망','중국 소비주','수출 대형주'],signals:['관세 발표 내용','수출입 지표','PMI 제조업 지수','주요국 정책 발표'],summary:['무역 뉴스는 특정 업종의 매출과 비용 구조를 직접 바꿀 수 있습니다.','공급망 차질은 생산 지연과 원가 상승으로 이어질 수 있습니다.','단기 이슈인지 구조적 재편인지 구분하는 것이 중요합니다.'],meters:{금리:25,환율:48,유가:22,심리:64},sentiment:['Mixed','무역 이슈는 피해 업종과 대체 수혜 업종이 동시에 나타나 시장 해석이 갈릴 수 있습니다.',205,'🚢'],chart:'소부장/수출주',chartData:[100,99,101,100,98,97,99,101,100,102],heat:['수출주:-','소부장:+','반도체:±','전기차:-','내수주:+','중국소비:-','물류:±','방어주:+'],timeline:['단기: 규제 대상 업종 중심으로 주가 반응','중기: 생산비와 공급망 재편 비용 반영','장기: 국내 대체재와 공급망 재편 수혜 여부 확인']},
+  earnings:{theme:'실적·가이던스',flow:['실적 발표','이익 전망 조정','밸류에이션 재평가','주가 방향성 변화'],positive:['실적 상향 기업과 동종 업종','마진 개선 업종','구조적 성장 확인 기업'],negative:['어닝쇼크 기업','가이던스 하향 업종','비용 증가가 큰 기업'],volatile:['실적 발표 직후 개별주','컨센서스 차이가 큰 종목','테마주'],signals:['매출 성장률','영업이익률','가이던스 변화','컨센서스 대비 차이'],summary:['실적 뉴스는 시장 전체보다 개별 기업과 업종에 직접적으로 작용합니다.','주가는 실적의 절대값보다 기대 대비 차이에 더 민감합니다.','가이던스 변화가 다음 주가 흐름의 핵심일 수 있습니다.'],meters:{금리:20,환율:30,유가:18,심리:82},sentiment:['Stock Specific','실적 뉴스는 개별 종목과 동종 업종의 기대치를 빠르게 재조정합니다.',235,'📊'],chart:'해당 기업/동종 업종',chartData:[100,102,101,105,108,106,110,109,111,113],heat:['어닝서프:+','어닝쇼크:-','동종업체:±','성장주:+','원가부담:-','마진개선:+','테마주:±','가이던스:+'],timeline:['단기: 발표 직후 기대 대비 차이에 주가 반응','중기: 애널리스트 추정치와 목표가 조정','장기: 가이던스 실현 여부가 주가 방향 결정']}
+};
+const screens={home:document.getElementById('home'),summary:document.getElementById('summary'),dashboard:document.getElementById('dashboard')};
+const newsTitle=document.getElementById('newsTitle'),newsLink=document.getElementById('newsLink'),tickerHint=document.getElementById('tickerHint'),homeWarn=document.getElementById('homeWarn');let analysis=null;
+function show(s){Object.values(screens).forEach(x=>x.classList.remove('active'));s.classList.add('active')}
+function has(t,arr){return arr.some(k=>t.includes(k))}
+function getText(){return (newsTitle.value+' '+newsLink.value+' '+tickerHint.value).toLowerCase()}
+function countScore(t,arr){return arr.reduce((sum,k)=>sum+(t.includes(k)?1:0),0)}
+function getScores(){
+  const t=getText();
+  return {
+    rate: countScore(t,['금리','기준금리','연준','fomc','국채','국채금리','인하','인상','동결','긴축','완화','rate','fed','bond','yield']),
+    fx: countScore(t,['환율','달러','원화','외환','원달러','강달러','약달러','usd','dollar','fx','exchange']),
+    oil: countScore(t,['유가','원유','석유','정유','에너지','중동','전쟁','지정학','oil','crude','energy']),
+    earnings: countScore(t,['실적','어닝','가이던스','매출','영업이익','순이익','컨센서스','어닝쇼크','어닝서프라이즈','earnings','guidance']),
+    trade: countScore(t,['관세','무역','공급망','수출','수입','물류','제재','반도체','부품','tariff','trade','supply','export','import','chip'])
+  };
+}
+function detectAnalysis(){
+  const scores=getScores();
+  const sorted=Object.entries(scores).sort((a,b)=>b[1]-a[1]);
+  const [topKey,topScore]=sorted[0];
+  const second=sorted[1];
+  const detected=sorted.filter(([_,v])=>v>0).map(([k])=>k);
+  const confidence = topScore>=3 ? '높음' : topScore===2 ? '보통' : topScore===1 ? '낮음' : '분석 불충분';
+  const isMixed = second && second[1]>0 && topScore-second[1]<=1;
+  return {key:topKey,score:topScore,scores,confidence,isMixed,secondKey:second?second[0]:null,detected};
+}
+function direction(){const t=(newsTitle.value+' '+tickerHint.value).toLowerCase();if(has(t,['급등','상승','강세','인상','호조','상향','수혜']))return'상승/호재성 신호';if(has(t,['급락','하락','약세','인하','둔화','쇼크','하향','우려','부담']))return'하락/리스크 신호';if(has(t,['동결','유지','보합']))return'관망/중립 신호';return'방향성 추가 확인 필요'}
+function build(){
+  const detected=detectAnalysis();
+  const key=detected.key;
+  const base=DATA[key];
+  const dir=direction();
+  const interest=tickerHint.value.trim();
+  const mixedLabel=detected.isMixed && DATA[detected.secondKey] ? `복합 이슈: ${base.theme} + ${DATA[detected.secondKey].theme}` : base.theme;
+  return {key,...base,dir,title:newsTitle.value.trim(),link:newsLink.value.trim(),hint:interest,confidence:detected.confidence,score:detected.score,scores:detected.scores,isMixed:detected.isMixed,mixedLabel};
+}
+function renderSummary(){
+  document.getElementById('outTitle').textContent=analysis.title;
+  document.getElementById('outLink').textContent=analysis.link;
+  document.getElementById('outTheme').textContent=analysis.mixedLabel;
+  document.getElementById('outDirection').textContent=`${analysis.dir} · 신뢰도 ${analysis.confidence}`;
+  const box=document.getElementById('summaryGrid');
+  box.innerHTML='';
+  const extra = analysis.hint ? `입력한 관심 종목/업종(${analysis.hint})은 결과의 관찰 대상에 함께 반영됩니다.` : '관심 종목이나 업종을 함께 입력하면 결과를 더 구체적으로 해석할 수 있습니다.';
+  const summaries=[...analysis.summary, extra];
+  const labels=['핵심 변수','시장 해석','투자 관점','관심 대상 반영'];
+  summaries.forEach((s,i)=>{box.innerHTML+=`<div class="summary-item"><div class="num">${i+1}</div><h3>${labels[i]}</h3><p>${s}</p></div>`})
+}
+function renderDash(){renderFlow();renderMeters();renderSentiment();renderChart();fill('positiveList',analysis.positive);fill('negativeList',analysis.negative);fill('volatileList',analysis.volatile);renderHeatmap();renderTimeline();renderChecklist();renderSignals()}
+function renderFlow(){const flow=document.getElementById('flow');flow.innerHTML='';analysis.flow.forEach((f,i)=>{flow.innerHTML+=`<span>${f}</span>${i<analysis.flow.length-1?'<span class="arrow">→</span>':''}`})}
+function renderMeters(){const m=document.getElementById('meters');m.innerHTML='';Object.entries(analysis.meters).forEach(([k,v])=>m.innerHTML+=`<div class="meter-row"><span>${k}</span><div class="meter"><div class="meter-fill" style="width:${v}%"></div></div><span class="score">${v}</span></div>`)}
+function renderSentiment(){const [title,text,deg,icon]=analysis.sentiment;document.getElementById('sentimentTitle').textContent=title;document.getElementById('sentimentText').textContent=text;document.getElementById('gauge').style.setProperty('--deg',deg+'deg');document.getElementById('gaugeIcon').textContent=icon}
+function renderChart(){document.getElementById('chartName').textContent=analysis.chart;const svg=document.getElementById('chartSvg');const data=analysis.chartData;const min=Math.min(...data)-2,max=Math.max(...data)+2;const pts=data.map((d,i)=>[i*(700/(data.length-1)),170-((d-min)/(max-min))*150]);const line=pts.map(p=>p.join(',')).join(' ');const area=`0,180 ${line} 700,180`;svg.innerHTML=`<line class="axis" x1="0" y1="160" x2="700" y2="160"/><polygon class="area" points="${area}"/><polyline class="line" points="${line}"/>${pts.map(p=>`<circle class="dot" cx="${p[0]}" cy="${p[1]}" r="4"/>`).join('')}`}
+function renderHeatmap(){const h=document.getElementById('heatmap');h.innerHTML='';analysis.heat.forEach(item=>{const [name,sign]=item.split(':');const cls=sign==='+'?'pos':sign==='-'?'neg':sign==='±'?'mid':'neu';const label=sign==='+'?'긍정 가능':sign==='-'?'부정 가능':sign==='±'?'혼재/변동성':'중립';h.innerHTML+=`<div class="heat ${cls}"><strong>${name}</strong><p>${label}</p></div>`})}
+function renderTimeline(){const t=document.getElementById('timeline');t.innerHTML='';['단기','중기','장기'].forEach((k,i)=>{t.innerHTML+=`<div class="time-card"><h3>${k} 반응</h3><p>${analysis.timeline[i].replace(k+': ','')}</p></div>`})}
+function renderChecklist(){const c=document.getElementById('checklist');c.innerHTML='';[['🔍','이미 반영됐는가?','뉴스가 나오기 전부터 관련 업종 주가가 이미 움직였는지 확인합니다.'],['📊','실적에 연결되는가?','단순 기대감인지, 매출·마진·비용에 실제로 영향을 주는지 구분합니다.'],['⏱️','단기 이슈인가?','하루짜리 이벤트인지, 몇 분기 동안 이어질 구조적 변화인지 봅니다.'],['⚖️','수혜와 피해가 갈리는가?','같은 뉴스도 업종별로 반대 효과가 날 수 있습니다.']].forEach(x=>c.innerHTML+=`<div class="check"><div class="icon">${x[0]}</div><div><strong>${x[1]}</strong><p>${x[2]}</p></div></div>`)}
+function renderSignals(){const s=document.getElementById('signals');s.innerHTML='';analysis.signals.forEach(x=>s.innerHTML+=`<div class="signal-row"><span>${x}</span><span class="value">후속 확인 필요</span></div>`)}
+function fill(id,arr){document.getElementById(id).innerHTML=arr.map(x=>`<li>${x}</li>`).join('')}
+document.getElementById('analyzeBtn').onclick=()=>{if(!newsTitle.value.trim()){homeWarn.textContent='기사 제목을 입력해 주세요.';return}homeWarn.textContent='';analysis=build();renderSummary();show(summary)};document.getElementById('goDashboard').onclick=()=>{renderDash();show(dashboard)};document.getElementById('back1').onclick=()=>show(home);document.getElementById('back2').onclick=()=>show(home);document.getElementById('backSummary').onclick=()=>show(summary);
+</script>
+</body>
+</html>
