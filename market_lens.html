@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Market Lens — 뉴스 시장 영향 분석</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --ink:#0d0d0d;--paper:#f9f8f5;--card:#ffffff;--line:#e8e5df;
+  --muted:#8c8880;--blue:#1a56db;--blue-pale:#eef3ff;
+  --green:#0d7a4e;--green-pale:#e8f7f1;
+  --red:#c0392b;--red-pale:#fdf0ee;
+  --amber:#b45309;--amber-pale:#fef8ec;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased}
+.syne{font-family:'Syne',sans-serif}
+.page{display:none}
+.page.on{display:block}
+
+/* NAV */
+.nav{display:flex;justify-content:space-between;align-items:center;padding:22px 48px;border-bottom:1px solid var(--line);background:var(--paper);position:sticky;top:0;z-index:10}
+.brand{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;color:var(--ink)}
+.brand span{color:var(--blue)}
+.nav-tag{font-size:.75rem;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.nav-actions{display:flex;gap:8px}
+.pill-btn{border:1.5px solid var(--line);background:var(--card);color:var(--muted);border-radius:999px;padding:8px 18px;font:inherit;font-size:.82rem;font-weight:600;cursor:pointer;transition:all .18s}
+.pill-btn:hover{border-color:var(--blue);color:var(--blue)}
+
+/* HOME */
+#home{min-height:100vh;display:flex;flex-direction:column}
+.hero-wrap{flex:1;display:grid;grid-template-columns:1fr 1fr;max-width:1200px;margin:0 auto;width:100%;padding:64px 48px;gap:80px;align-items:center}
+.hero-kicker{display:inline-flex;align-items:center;gap:8px;background:var(--blue-pale);color:var(--blue);font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:6px 14px;border-radius:999px;margin-bottom:28px}
+.hero-kicker::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--blue)}
+h1.hero-title{font-family:'Syne',sans-serif;font-size:3.8rem;line-height:1.05;letter-spacing:-.04em;font-weight:800;margin-bottom:20px}
+h1.hero-title em{font-style:normal;color:var(--blue)}
+.hero-desc{font-size:1rem;color:var(--muted);line-height:1.8;margin-bottom:36px;max-width:420px}
+.feat-list{display:flex;flex-direction:column;gap:10px}
+.feat-item{display:flex;align-items:center;gap:10px;font-size:.88rem;color:var(--muted);font-weight:500}
+.feat-dot{width:5px;height:5px;border-radius:50%;background:var(--blue);flex-shrink:0}
+
+/* FORM */
+.form-panel{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:36px;box-shadow:0 4px 40px rgba(0,0,0,0.06)}
+.form-eyebrow{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:24px;display:flex;align-items:center;gap:8px}
+.form-eyebrow::after{content:'';flex:1;height:1px;background:var(--line)}
+.fld{margin-bottom:18px}
+.fld label{display:block;font-size:.75rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.fld input,.fld textarea{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:13px 16px;font:inherit;font-size:.93rem;color:var(--ink);background:var(--paper);outline:none;transition:border-color .2s,box-shadow .2s}
+.fld textarea{min-height:72px;resize:vertical;line-height:1.7}
+.fld input:focus,.fld textarea:focus{border-color:var(--blue);box-shadow:0 0 0 4px rgba(26,86,219,.1);background:#fff}
+.fld input::placeholder,.fld textarea::placeholder{color:#c0bdb8}
+.btn-go{width:100%;margin-top:20px;padding:15px;border:none;border-radius:12px;background:var(--blue);color:#fff;font:inherit;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .18s;box-shadow:0 4px 16px rgba(26,86,219,.28)}
+.btn-go:hover{background:#1447b3;transform:translateY(-1px)}
+#homeErr{color:var(--red);font-size:.82rem;font-weight:600;margin-top:10px;text-align:center}
+.form-note{margin-top:14px;font-size:.78rem;color:var(--muted);text-align:center;line-height:1.6}
+
+/* INNER */
+.inner-body{max-width:1100px;margin:0 auto;padding:40px 48px}
+
+/* ARTICLE CARD */
+.article-card{background:var(--ink);color:#fff;border-radius:20px;padding:28px 32px;margin-bottom:32px;display:flex;align-items:flex-start;gap:20px}
+.art-icon{font-size:1.6rem;flex-shrink:0;margin-top:2px}
+.art-label{font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:8px}
+.art-title{font-family:'Syne',sans-serif;font-size:1.35rem;font-weight:700;line-height:1.3;margin-bottom:14px}
+.tag-row{display:flex;gap:8px;flex-wrap:wrap}
+.tag{padding:5px 13px;border-radius:999px;font-size:.74rem;font-weight:700}
+.tag-blue{background:rgba(99,152,255,.2);color:#99c2ff;border:1px solid rgba(99,152,255,.25)}
+.tag-white{background:rgba(255,255,255,.1);color:rgba(255,255,255,.65)}
+.tag-green{background:rgba(52,211,153,.2);color:#6ee7b7;border:1px solid rgba(52,211,153,.25)}
+.tag-red{background:rgba(252,129,129,.2);color:#fca5a5;border:1px solid rgba(252,129,129,.25)}
+.tag-amber{background:rgba(251,191,36,.2);color:#fcd34d;border:1px solid rgba(251,191,36,.25)}
+
+/* SUMMARY */
+.sec-hd{margin-bottom:20px}
+.sec-title{font-family:'Syne',sans-serif;font-size:1.4rem;font-weight:700;letter-spacing:-.02em;margin-bottom:4px}
+.sec-sub{font-size:.85rem;color:var(--muted)}
+.sum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:32px}
+.sum-card{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:22px;transition:border-color .2s,transform .2s}
+.sum-card:hover{border-color:var(--blue);transform:translateY(-2px)}
+.sum-num{width:28px;height:28px;border-radius:8px;background:var(--blue);color:#fff;font-weight:800;font-size:.78rem;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.sum-card h3{font-size:.85rem;font-weight:700;color:var(--blue);margin-bottom:8px}
+.sum-card p{font-size:.88rem;color:var(--muted);line-height:1.75}
+.hint-card{background:var(--blue-pale);border:1.5px solid #c7d9f8;border-radius:18px;padding:22px}
+.hint-card h3{font-size:.85rem;font-weight:700;color:var(--blue);margin-bottom:8px}
+.hint-card p{font-size:.88rem;color:#3b6bc4;line-height:1.75}
+
+.cta-row{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;padding:8px 0 40px}
+.btn-main{background:var(--blue);color:#fff;border:none;border-radius:999px;padding:14px 32px;font:inherit;font-size:.92rem;font-weight:700;cursor:pointer;transition:all .18s;box-shadow:0 4px 16px rgba(26,86,219,.25)}
+.btn-main:hover{background:#1447b3;transform:translateY(-1px)}
+.btn-out{background:var(--card);color:var(--ink);border:1.5px solid var(--line);border-radius:999px;padding:13px 30px;font:inherit;font-size:.92rem;font-weight:600;cursor:pointer;transition:all .18s}
+.btn-out:hover{border-color:var(--ink)}
+
+/* DASHBOARD */
+.dash{display:grid;gap:18px}
+.flow-strip{background:var(--blue);border-radius:14px;padding:16px 22px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:rgba(255,255,255,.9);font-weight:600;font-size:.9rem}
+.flow-arr{color:rgba(255,255,255,.4);font-size:1.1rem}
+.dcard{background:var(--card);border:1.5px solid var(--line);border-radius:20px;padding:24px 26px}
+.dcard-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;margin-bottom:4px}
+.dcard-sub{font-size:.8rem;color:var(--muted);margin-bottom:18px}
+.two{display:grid;grid-template-columns:1.1fr .9fr;gap:18px}
+
+/* METERS */
+.m-list{display:grid;gap:12px}
+.m-row{display:grid;grid-template-columns:96px 1fr 38px;align-items:center;gap:10px}
+.m-lbl{font-size:.85rem;font-weight:700}
+.m-track{height:8px;background:var(--line);border-radius:999px;overflow:hidden}
+.m-fill{height:100%;background:linear-gradient(90deg,#93b7f7,var(--blue));border-radius:999px;transition:width .9s cubic-bezier(.4,0,.2,1)}
+.m-val{text-align:right;font-size:.82rem;font-weight:700;color:var(--muted)}
+
+/* GAUGE */
+.gauge-wrap{display:grid;grid-template-columns:96px 1fr;gap:16px;align-items:center}
+.gauge{width:90px;height:90px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:conic-gradient(var(--blue) 0deg,var(--blue) var(--deg),var(--line) var(--deg),var(--line) 360deg)}
+.gauge-in{width:68px;height:68px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:1.7rem}
+.g-label{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:6px}
+.g-text{font-size:.83rem;color:var(--muted);line-height:1.7}
+
+/* CHART */
+.chart-box{background:var(--paper);border:1.5px solid var(--line);border-radius:14px;padding:14px 16px}
+.chart-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.chart-nm{font-size:.85rem;font-weight:700}
+.chart-tg{font-size:.72rem;color:var(--muted);font-weight:600;background:var(--line);padding:3px 10px;border-radius:999px}
+svg.ch{width:100%;height:140px}
+.cl{fill:none;stroke:var(--blue);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.ca{fill:rgba(26,86,219,.07)}
+.cd{fill:var(--blue)}
+.cx{stroke:var(--line);stroke-width:1}
+
+/* IMPACT */
+.imp-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.imp-box{border-radius:18px;padding:20px;border:1.5px solid transparent}
+.imp-box.g{background:var(--green-pale);border-color:#b2dfcf}
+.imp-box.b{background:var(--red-pale);border-color:#f2c4be}
+.imp-box.w{background:var(--amber-pale);border-color:#f0d9a8}
+.imp-box h3{font-size:.85rem;font-weight:800;margin-bottom:10px}
+.imp-box.g h3{color:var(--green)}
+.imp-box.b h3{color:var(--red)}
+.imp-box.w h3{color:var(--amber)}
+.imp-box ul{padding-left:16px;font-size:.82rem;line-height:1.85}
+
+/* HEATMAP */
+.hmap{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.hcell{border-radius:14px;padding:12px 14px;border:1.5px solid transparent}
+.hcell strong{display:block;font-size:.83rem;font-weight:800;margin-bottom:3px}
+.hcell p{font-size:.76rem;color:var(--muted)}
+.hcell.hp{background:var(--green-pale);border-color:#b2dfcf}
+.hcell.hn{background:var(--red-pale);border-color:#f2c4be}
+.hcell.hm{background:var(--amber-pale);border-color:#f0d9a8}
+.hcell.h0{background:var(--paper);border-color:var(--line)}
+
+/* TIMELINE */
+.tl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.tl-card{background:var(--card);border:1.5px solid var(--line);border-radius:18px;padding:20px}
+.tl-period{font-size:.68rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--blue);margin-bottom:6px}
+.tl-card h3{font-size:.9rem;font-weight:700;margin-bottom:8px}
+.tl-card p{font-size:.83rem;color:var(--muted);line-height:1.75}
+
+/* CHECKLIST */
+.ck-list{display:grid;gap:10px}
+.ck-item{display:flex;gap:12px;align-items:flex-start;background:var(--paper);border:1.5px solid var(--line);border-radius:14px;padding:13px 15px}
+.ck-icon{font-size:1.1rem;flex-shrink:0;margin-top:1px}
+.ck-item strong{display:block;font-size:.85rem;margin-bottom:2px}
+.ck-item p{font-size:.8rem;color:var(--muted);line-height:1.65}
+
+/* SIGNALS */
+.sig-list{display:grid;gap:9px}
+.sig-row{display:flex;justify-content:space-between;align-items:center;background:var(--paper);border:1.5px solid var(--line);border-radius:13px;padding:11px 15px}
+.sig-nm{font-size:.85rem;font-weight:700}
+.sig-tag{font-size:.72rem;color:var(--muted);font-weight:600;background:var(--line);padding:3px 10px;border-radius:999px}
+
+/* TICKER CHIPS */
+.ticker-section{margin-top:18px;padding-top:18px;border-top:1px solid var(--line)}
+.ticker-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.ticker-chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{padding:5px 12px;border-radius:999px;font-size:.78rem;font-weight:700;background:var(--blue-pale);color:var(--blue);border:1px solid #c7d9f8}
+
+.disc{text-align:center;color:var(--muted);font-size:.76rem;line-height:1.65;padding:20px 0 8px;border-top:1px solid var(--line);margin-top:8px}
+
+@media(max-width:960px){
+  .nav,.inner-nav{padding:20px 28px}
+  .hero-wrap{grid-template-columns:1fr;padding:48px 28px;gap:48px}
+  h1.hero-title{font-size:2.8rem}
+  .inner-body{padding:32px 28px}
+  .two,.imp-grid,.tl-grid,.hmap{grid-template-columns:1fr}
+  .sum-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:600px){
+  .nav{padding:16px 20px}
+  .hero-wrap{padding:36px 20px;gap:36px}
+  h1.hero-title{font-size:2.2rem}
+  .inner-body{padding:24px 20px}
+  .sum-grid{grid-template-columns:1fr}
+  .m-row{grid-template-columns:78px 1fr 32px}
+  .article-card{flex-direction:column}
+}
+</style>
+</head>
+<body>
+
+<!-- ══ HOME ══ -->
+<div id="home" class="page on">
+  <nav class="nav">
+    <div class="brand syne">Market<span>Lens</span></div>
+    <div class="nav-tag">뉴스 기반 시장 영향 분석</div>
+  </nav>
+  <div class="hero-wrap">
+    <div>
+      <div class="hero-kicker">Smart News Analysis</div>
+      <h1 class="hero-title">이 뉴스가<br>시장에 <em>어떤</em><br>영향을 줄까</h1>
+      <p class="hero-desc">경제 뉴스를 입력하면 업종별 영향, 시장 심리, 시간축 반응, 관찰 지표까지 한 번에 분석해드립니다.</p>
+      <div class="feat-list">
+        <div class="feat-item"><span class="feat-dot"></span>시장 변수 영향도 점수화</div>
+        <div class="feat-item"><span class="feat-dot"></span>업종별 긍정·부정 히트맵</div>
+        <div class="feat-item"><span class="feat-dot"></span>단기·중기·장기 시간축 분석</div>
+        <div class="feat-item"><span class="feat-dot"></span>관심 종목 맞춤 해석 반영</div>
+        <div class="feat-item"><span class="feat-dot"></span>복합 이슈 자동 감지</div>
+      </div>
+    </div>
+    <div class="form-panel">
+      <div class="form-eyebrow">뉴스 입력</div>
+      <div class="fld">
+        <label for="t0">기사 제목 *</label>
+        <input id="t0" placeholder="예: 연준 금리 인하 기대 후퇴에 나스닥 하락"/>
+      </div>
+      <div class="fld">
+        <label for="l0">기사 링크 (선택)</label>
+        <input id="l0" placeholder="https://"/>
+      </div>
+      <div class="fld">
+        <label for="h0">관심 종목 / 업종 (선택)</label>
+        <textarea id="h0" placeholder="예: 삼성전자, SK하이닉스, 항공주, 은행주…"></textarea>
+      </div>
+      <button class="btn-go" id="analyzeBtn">분석 시작 →</button>
+      <div id="homeErr"></div>
+      <div class="form-note">특정 종목의 매수·매도 추천이 아닌 뉴스 해석 보조 도구입니다.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ SUMMARY ══ -->
+<div class="page" id="pgSummary" style="display:none">
+  <nav class="nav">
+    <div class="brand syne">Market<span>Lens</span></div>
+    <div class="nav-actions"><button class="pill-btn" id="s-back">← 처음으로</button></div>
+  </nav>
+  <div class="inner-body">
+    <div class="article-card">
+      <div class="art-icon">📰</div>
+      <div style="flex:1">
+        <div class="art-label">분석한 뉴스</div>
+        <div class="art-title" id="outTitle"></div>
+        <div class="tag-row">
+          <span class="tag tag-blue" id="outTheme"></span>
+          <span class="tag" id="outDir"></span>
+          <span class="tag tag-white" id="outConf"></span>
+        </div>
+      </div>
+    </div>
+    <div class="sec-hd"><div class="sec-title">핵심 요약</div><div class="sec-sub">뉴스의 시장 영향을 4가지 관점으로 정리했습니다.</div></div>
+    <div class="sum-grid" id="sumGrid"></div>
+    <div class="cta-row">
+      <button class="btn-out" id="s-re">다시 입력하기</button>
+      <button class="btn-main" id="s-dash">대시보드 보기 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DASHBOARD ══ -->
+<div class="page" id="pgDash" style="display:none">
+  <nav class="nav">
+    <div class="brand syne">Market<span>Lens</span></div>
+    <div class="nav-actions">
+      <button class="pill-btn" id="d-sum">← 요약으로</button>
+      <button class="pill-btn" id="d-home">처음으로</button>
+    </div>
+  </nav>
+  <div class="inner-body">
+    <div class="dash">
+      <div class="flow-strip" id="flowStrip"></div>
+      <div class="two">
+        <div class="dcard">
+          <div class="dcard-title">시장 변수 영향도</div>
+          <div class="dcard-sub">뉴스가 각 시장 변수에 미치는 영향을 점수화했습니다.</div>
+          <div class="m-list" id="mList"></div>
+        </div>
+        <div class="dcard">
+          <div class="dcard-title">시장 심리</div>
+          <div class="dcard-sub">이 뉴스가 투자 심리에 미치는 방향성입니다.</div>
+          <div class="gauge-wrap">
+            <div class="gauge" id="gauge"><div class="gauge-in" id="gaugeIcon"></div></div>
+            <div><div class="g-label" id="gLabel"></div><div class="g-text" id="gText"></div></div>
+          </div>
+        </div>
+      </div>
+      <div class="dcard">
+        <div class="dcard-title">주가 반응 시뮬레이션</div>
+        <div class="dcard-sub">실시간 데이터가 아닌, 뉴스 충격 이후 가능한 주가 반응을 시각화한 예시 차트입니다.</div>
+        <div class="chart-box">
+          <div class="chart-hd"><span class="chart-nm" id="chartNm"></span><span class="chart-tg">news impact simulation</span></div>
+          <svg class="ch" viewBox="0 0 700 140" preserveAspectRatio="none" id="chartSvg"></svg>
+        </div>
+      </div>
+      <div>
+        <div class="sec-hd"><div class="sec-title">업종별 영향 전망</div></div>
+        <div class="imp-grid">
+          <div class="imp-box g"><h3>📈 긍정 가능 업종</h3><ul id="posL"></ul></div>
+          <div class="imp-box b"><h3>📉 부정 가능 업종</h3><ul id="negL"></ul></div>
+          <div class="imp-box w"><h3>⚠️ 변동성 확대</h3><ul id="volL"></ul></div>
+        </div>
+      </div>
+      <div class="dcard">
+        <div class="dcard-title">업종 영향 히트맵</div>
+        <div class="dcard-sub">주요 업종별 이 뉴스의 영향 방향을 나타낸 맵입니다.</div>
+        <div class="hmap" id="hmap"></div>
+      </div>
+      <div>
+        <div class="sec-hd"><div class="sec-title">시간축별 시장 반응</div></div>
+        <div class="tl-grid" id="tlGrid"></div>
+      </div>
+      <div class="two">
+        <div class="dcard">
+          <div class="dcard-title">시장 해석 포인트</div>
+          <div class="ck-list" id="ckList"></div>
+        </div>
+        <div class="dcard">
+          <div class="dcard-title">후속 관찰 지표</div>
+          <div class="dcard-sub">이 뉴스 이후 주시해야 할 지표들입니다.</div>
+          <div class="sig-list" id="sigList"></div>
+          <div class="ticker-section" id="tickerSection" style="display:none">
+            <div class="ticker-label">관심 종목 반영</div>
+            <div class="ticker-chips" id="tickerChips"></div>
+          </div>
+        </div>
+      </div>
+      <div class="disc">본 화면은 학습 목적의 보조 도구이며, 특정 종목의 매수·매도 추천이 아닙니다.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════
+//  ANALYSIS ENGINE
+// ════════════════════════════════════════════════
+
+// ── 1. 키워드 사전 ─────────────────────────────
+const KW = {
+  rate:     ['금리','기준금리','연준','fomc','국채','국채금리','긴축','완화','통화정책','피벗','금통위','한은','인플레이션','물가','cpi','pce','rate','fed','bond','yield','hawkish','dovish'],
+  fx:       ['환율','달러','원화','외환','원달러','강달러','약달러','달러인덱스','dxy','usd','yen','위안','엔화','환헤지','fx','dollar','exchange','currency'],
+  oil:      ['유가','원유','석유','정유','에너지','중동','opec','전쟁','지정학','천연가스','wti','브렌트','oil','crude','energy','gas','conflict'],
+  earnings: ['실적','어닝','가이던스','매출','영업이익','순이익','컨센서스','어닝쇼크','어닝서프라이즈','분기','잠정실적','영업손실','흑자','적자','earnings','guidance','revenue','profit','eps'],
+  trade:    ['관세','무역','공급망','수출','수입','물류','제재','반도체','부품','tariff','trade','supply','export','import','chip','반도체법','규제','embargo'],
+  macro:    ['gdp','경기','경기침체','불황','회복','소비','고용','실업','pmi','ism','소비자심리','경기선행','성장률','recession','growth','consumer'],
+  policy:   ['정책','규제','법안','지원','보조금','세금','세제','정부','당국','공정위','금융위','청와대','여당','야당','policy','regulation','subsidy'],
+  crypto:   ['비트코인','이더리움','코인','가상자산','crypto','bitcoin','ethereum','블록체인','nft'],
+  realestate:['부동산','주택','아파트','분양','전세','임대','pf','리츠','건설','reit','재건축','재개발'],
+};
+
+const UP_KW   = ['급등','상승','강세','호조','상향','수혜','개선','증가','확대','회복','반등','성장','호실적','긍정','낙관','기대'];
+const DOWN_KW = ['급락','하락','약세','둔화','쇼크','하향','우려','부담','악화','감소','위축','침체','손실','경고','비관','리스크','충격'];
+const FLAT_KW = ['동결','유지','보합','횡보','혼조','중립','관망','혼재'];
+
+// ── 2. 카테고리별 데이터 (방향별로 3세트씩) ────
+const DATA = {
+
+  rate: {
+    up: {
+      theme:'금리 인하 기대',
+      flow:['금리 인하 기대 형성','할인율 하락 전망','위험자산 선호 확대','성장주·채권 동반 강세'],
+      summary:[
+        '금리 인하 기대가 높아지면 미래 현금흐름의 현재가치가 커져 성장주 밸류에이션이 올라갑니다.',
+        '완화적 통화정책 기대는 시장 전반의 위험선호(Risk On) 심리를 자극하고 자금이 주식으로 이동할 수 있습니다.',
+        '단, 기대가 실제 인하로 이어지는지 FOMC 결과와 점도표를 반드시 확인해야 합니다.'
+      ],
+      positive:['성장주·기술주: 할인율 하락 시 밸류에이션 부담 완화','바이오·2차전지: 장기 성장 테마에 긍정적','리츠·부동산: 자금조달 비용 감소 기대'],
+      negative:['은행·보험: 금리 인하 시 이자마진 축소 우려','단기채·현금성 자산: 상대 매력 감소','방어주·배당주: 성장주 대비 상대적 약세 가능'],
+      volatile:['나스닥·코스닥 성장주','고PER 기술주','금리 민감 리츠'],
+      signals:['미국 10년물 국채금리','FOMC 회의 결과 및 점도표','CPI·PCE 물가 지표','실업률·고용지표'],
+      meters:{금리:95,환율:52,유가:25,투자심리:85},
+      sentiment:{label:'Risk On',text:'금리 인하 기대는 위험자산 선호 심리를 자극합니다. 성장주 중심으로 수급이 유입될 수 있는 국면입니다.',deg:260,icon:'🚀'},
+      chart:{name:'나스닥/성장주',data:[100,101,103,105,107,106,108,110,109,112]},
+      heat:['성장주:+','은행:-','리츠:+','배당주:-','바이오:+','채권:+','부동산:+','보험:-'],
+      timeline:['성장주 중심 단기 반등 가능성, 특히 고PER 기술주·바이오에 수급 유입 기대','금리 인하 실현 여부가 확인되는 1~3개월 내 기업 이익 전망 상향 조정 가능','장기적으로 경기 회복과 기업 실적 개선이 동반될 경우 강세장 진입 가능성'],
+      checklist:[
+        {icon:'🔍',title:'이미 선반영됐는가?',text:'성장주가 기대감으로 이미 급등했다면 실제 인하 시 "Buy the rumor, Sell the fact" 패턴이 나타날 수 있습니다.'},
+        {icon:'📊',title:'실제 인하로 이어지는가?',text:'기대와 실제 인하 사이의 갭을 점도표와 FOMC 발언으로 검증해야 합니다.'},
+        {icon:'⏱️',title:'인하 속도가 중요하다',text:'한 번 인하인지, 연속 인하 사이클의 시작인지에 따라 시장 반응 강도가 달라집니다.'},
+        {icon:'⚖️',title:'업종별 방향이 갈린다',text:'성장주는 수혜, 은행·보험은 이자마진 축소로 피해를 볼 수 있어 업종 선별이 핵심입니다.'}
+      ]
+    },
+    down: {
+      theme:'금리 인상·긴축 우려',
+      flow:['금리 인상 압력 증가','할인율 상승','성장주 밸류에이션 부담','위험자산 회피 심리 확대'],
+      summary:[
+        '금리 인상 기대 강화는 미래 이익을 높은 이율로 할인하게 만들어 성장주에 직접적인 밸류에이션 압박이 됩니다.',
+        '긴축 우려 국면에서는 투자자들이 성장주에서 가치주·방어주로 포트폴리오를 이동하는 경향이 있습니다.',
+        '금리가 인하 기대 후퇴인지 실제 인상인지를 구분해 강도를 판단하는 것이 중요합니다.'
+      ],
+      positive:['은행·보험: 금리 상승 시 이자마진 확대 기대','가치주·배당주: 성장주 대비 상대적 선호','단기채·현금성 자산: 방어적 선택지로 부각'],
+      negative:['성장주·기술주: 높은 할인율로 밸류에이션 부담 증가','부동산·리츠: 자금조달 비용 상승 직격','부채 비율 높은 기업: 이자비용 증가 우려'],
+      volatile:['나스닥·코스닥 고PER주','2차전지·바이오 성장 테마','금리 민감 부동산 관련주'],
+      signals:['미국 10년물 국채금리 레벨','FOMC 발언 및 점도표 변화','CPI·PCE 서프라이즈 여부','달러인덱스(DXY) 방향'],
+      meters:{금리:95,환율:58,유가:30,투자심리:28},
+      sentiment:{label:'Risk Off',text:'금리 부담이 높아지는 국면에서 투자자들은 성장주를 줄이고 방어적 자산을 선호합니다. 변동성 확대 구간입니다.',deg:80,icon:'🛡️'},
+      chart:{name:'나스닥/성장주',data:[100,98,96,94,93,91,92,90,89,88]},
+      heat:['성장주:-','은행:+','리츠:-','배당주:+','바이오:-','채권:-','부동산:-','보험:+'],
+      timeline:['성장주·기술주 중심으로 단기 변동성 확대, 투자자 포트폴리오 리밸런싱 움직임 가시화','대출 부담 증가와 소비 둔화 우려가 기업 실적 전망에 반영되는 1~3개월 구간','물가 안정이 확인되어야 금리 인하 기대가 재형성되는 장기 싸이클로 진입 가능'],
+      checklist:[
+        {icon:'🔍',title:'인하 기대 후퇴인가, 실제 인상인가?',text:'기대만 줄어든 것인지 실제 추가 인상이 예고된 것인지에 따라 충격 강도가 크게 다릅니다.'},
+        {icon:'📊',title:'기업 이익에 직접 영향이 있는가?',text:'이자비용 증가가 실적에 반영되는 섹터(리츠, 건설, 부채 多 기업)를 우선 점검해야 합니다.'},
+        {icon:'⏱️',title:'긴축이 얼마나 더 이어지는가?',text:'연준 점도표에서 최종 금리 레벨과 인하 시점 힌트를 확인하는 것이 핵심입니다.'},
+        {icon:'⚖️',title:'수혜 업종도 분명히 있다',text:'은행·보험·가치주는 금리 상승기에 상대적 강세를 보이는 경향이 있어 종목 선별 기회가 될 수 있습니다.'}
+      ]
+    },
+    flat: {
+      theme:'금리 동결·관망',
+      flow:['금리 동결 결정','정책 불확실성 지속','업종별 차별화 장세','방향성 재탐색 구간'],
+      summary:[
+        '금리 동결은 현 수준을 유지한다는 신호로, 추가 인상 리스크를 일시적으로 줄여줍니다.',
+        '하지만 동결이 인하 시작을 의미하진 않아, 시장은 다음 발언과 데이터에 더 민감하게 반응하는 경향이 있습니다.',
+        '이 구간에서는 업종별 실적 차별화가 주가 방향의 핵심 요인이 됩니다.'
+      ],
+      positive:['실적 우량주: 금리 불확실성 속 안정적 이익 돋보임','배당주: 현금 보유 매력 유지','방어 소비재: 경기 둔화 우려 시 안정적 수요'],
+      negative:['고밸류 성장주: 인하 기대 부재로 할인율 부담 지속','부동산·리츠: 높은 금리 환경 유지로 부담 계속','부채 의존 기업: 이자비용 장기화'],
+      volatile:['금리 방향에 베팅한 채권 ETF','고PER 기술주','금리 민감 섹터 전반'],
+      signals:['차기 FOMC 점도표 변화','향후 물가 지표 서프라이즈 여부','고용 및 소비 지표','연준 의장 발언 뉘앙스'],
+      meters:{금리:72,환율:45,유가:28,투자심리:52},
+      sentiment:{label:'Neutral',text:'동결은 긴축 리스크를 일시 완화하지만 인하 기대도 아니어서 방향성이 불분명한 관망 구간입니다.',deg:180,icon:'⚖️'},
+      chart:{name:'코스피/대형주',data:[100,100,101,99,100,101,100,102,101,101]},
+      heat:['성장주:±','은행:+','리츠:±','배당주:+','바이오:±','채권:0','부동산:-','보험:+'],
+      timeline:['발표 직후 변동성 단기 완화, 단 다음 데이터(물가·고용)에 따라 방향 재설정 가능','동결 기간이 길어질수록 기업 이익에 따른 개별 종목 차별화 심화','향후 인하 사이클 시작 시점을 선점하는 전략적 포지셔닝 구간으로 활용 가능'],
+      checklist:[
+        {icon:'🔍',title:'동결이 예상된 이벤트인가?',text:'이미 시장이 동결을 반영했다면 실제 반응이 크지 않을 수 있습니다. 서프라이즈 요소를 확인하세요.'},
+        {icon:'📊',title:'발언 뉘앙스가 핵심이다',text:'금리 결정보다 의장의 기자회견 발언이 더 큰 시장 반응을 유발하는 경우가 많습니다.'},
+        {icon:'⏱️',title:'동결이 얼마나 지속되는가?',text:'장기 동결은 고금리 환경의 지속을 의미해 부동산·부채 기업에 계속 부담이 됩니다.'},
+        {icon:'⚖️',title:'섹터 로테이션 기회다',text:'방향성 불명확 구간에서는 실적 안정적인 업종으로 자금이 이동하는 경향이 있습니다.'}
+      ]
+    }
+  },
+
+  fx: {
+    up: {
+      theme:'원화 약세·달러 강세',
+      flow:['달러 강세·원화 약세','수출 환산이익 증가','수입 원가 상승','외국인 수급 변동성'],
+      summary:[
+        '원화 약세는 수출 기업의 원화 환산 이익을 늘려 자동차·반도체·조선 등 수출 대형주에 긍정적입니다.',
+        '반면 원유·원자재 등 수입 의존도가 높은 업종은 원가 상승 부담이 커지고, 외화 부채가 많은 기업은 환차손 위험이 있습니다.',
+        '원화 약세 국면에서 외국인 투자자들은 원화 자산의 달러 환산 수익이 줄어 순매도로 전환할 수 있어 수급 변동성이 확대됩니다.'
+      ],
+      positive:['자동차: 달러 매출의 원화 환산이익 확대','반도체·IT: 수출 가격경쟁력 개선','조선: 달러 수주 환산익 증가'],
+      negative:['항공: 달러 표시 연료비·리스 비용 급증','음식료·유통: 수입 원자재 비용 상승','외화부채 기업: 환차손 위험 증가'],
+      volatile:['외국인 수급 민감 대형주','원달러 1,400원 이상 구간 종목','항공·여행·면세점'],
+      signals:['원·달러 환율 레벨','달러인덱스(DXY)','외국인 순매수/순매도','무역수지 발표'],
+      meters:{금리:42,환율:95,유가:38,투자심리:55},
+      sentiment:{label:'Mixed',text:'원화 약세는 수출주 호재이지만 수입물가 상승과 외국인 이탈 리스크가 동시에 존재합니다.',deg:190,icon:'💱'},
+      chart:{name:'수출 대형주',data:[100,101,103,104,106,105,107,108,107,109]},
+      heat:['자동차:+','항공:-','반도체:+','음식료:-','조선:+','면세:-','IT수출:+','외화부채:-'],
+      timeline:['환율 레벨 따라 수출주 주가 단기 재평가, 외국인 수급 변동성 주시','수출 기업 분기 실적에 환율 효과가 반영되는 1~3개월 구간에서 차별화 심화','환율 안정 여부가 외국인 수급 회복과 밸류에이션 정상화의 핵심 변수'],
+      checklist:[
+        {icon:'🔍',title:'환율이 얼마나 지속될 것인가?',text:'일시적 변동인지 구조적 약세인지에 따라 수출주 수혜 기간이 크게 달라집니다.'},
+        {icon:'📊',title:'헤징 비율을 확인하라',text:'수출 기업이 환 헤지를 많이 했다면 즉각적인 이익 증가가 제한될 수 있습니다.'},
+        {icon:'⏱️',title:'외국인 수급을 실시간 추적하라',text:'원화 약세가 심화되면 외국인이 원화 자산 자체를 기피할 수 있어 수급 모니터링이 필수입니다.'},
+        {icon:'⚖️',title:'수혜와 피해가 명확히 갈린다',text:'같은 환율 뉴스에도 수출주는 오르고 항공·음식료는 내리는 극명한 차별화가 나타납니다.'}
+      ]
+    },
+    down: {
+      theme:'원화 강세·달러 약세',
+      flow:['달러 약세·원화 강세','수출 환산이익 감소','수입 원가 완화','외국인 자금 유입 기대'],
+      summary:[
+        '원화 강세는 수출 기업의 원화 환산 이익을 줄여 자동차·반도체 등 수출 대형주에 부담이 됩니다.',
+        '반면 항공·여행·음식료 등 수입 의존 업종은 원가 부담이 완화되며 긍정적인 영향을 받을 수 있습니다.',
+        '외국인 입장에서 원화 강세는 환차익 기회가 되어 국내 증시로 자금이 유입될 수 있는 환경이 됩니다.'
+      ],
+      positive:['항공: 달러 표시 비용 부담 경감','음식료·유통: 수입 원자재 비용 절감','내수 소비재: 실질 구매력 개선'],
+      negative:['자동차: 수출 가격경쟁력 약화','반도체·IT 수출주: 환산이익 감소','조선: 달러 수주 환산액 감소'],
+      volatile:['수출 의존도 높은 대형주','환율 헤지 미시행 기업','원화 강세 속도에 민감한 종목'],
+      signals:['원·달러 환율 추이','달러인덱스(DXY) 방향성','외국인 순매수 동향','미 연준 발언 기조'],
+      meters:{금리:40,환율:90,유가:32,투자심리:65},
+      sentiment:{label:'Mixed',text:'원화 강세는 내수·수입 업종에 호재이나 수출주에는 부담입니다. 외국인 자금 유입 여부가 전체 방향을 결정합니다.',deg:210,icon:'📈'},
+      chart:{name:'내수/항공',data:[100,101,102,103,101,104,103,105,106,105]},
+      heat:['자동차:-','항공:+','반도체:-','음식료:+','조선:-','여행:+','IT수출:-','내수소비:+'],
+      timeline:['수출주 약세·내수주 강세 차별화 단기 심화, 외국인 유입 여부 주목','수출 기업 분기 실적에 원화 강세 효과가 반영되며 추정치 하향 가능','달러 방향성이 결정되면 국내 증시 전체 방향성 재설정'],
+      checklist:[
+        {icon:'🔍',title:'강세가 일시적인가 추세적인가?',text:'일시적이면 수출주 충격이 제한적이지만, 추세 강세라면 실적 추정치 전반 하향이 불가피합니다.'},
+        {icon:'📊',title:'외국인 자금 실제 유입을 확인하라',text:'원화 강세라도 글로벌 리스크가 높으면 외국인이 신흥국 자체를 회피할 수 있습니다.'},
+        {icon:'⏱️',title:'헤징 비율과 결산 시점이 관건',text:'헤지를 적게 한 수출 기업은 다음 분기 실적에서 직접적인 타격을 받습니다.'},
+        {icon:'⚖️',title:'내수·수입 업종 선별 기회',text:'항공, 음식료, 여행 업종은 원화 강세 수혜가 명확해 선별적 접근이 유효합니다.'}
+      ]
+    },
+    flat: {
+      theme:'환율 보합·외환 안정',
+      flow:['환율 변동성 축소','수급 불확실성 완화','개별 종목 재평가','실적 중심 장세 전환'],
+      summary:[
+        '환율이 안정되면 수출·수입 업종 모두 비용 예측 가능성이 높아져 기업 경영 계획 수립이 용이해집니다.',
+        '환율 변동성 축소는 외국인 투자자의 환 리스크를 줄여 국내 주식 매력도를 높이는 요인이 됩니다.',
+        '이 구간에서는 환율 대신 기업 실적과 업종별 모멘텀이 주가의 핵심 결정 요인이 됩니다.'
+      ],
+      positive:['수출·수입 기업 모두: 비용 예측 가능성 개선','외국인 수급: 환 리스크 감소로 투자 매력 증가','실적 안정 기업: 펀더멘털 재평가 기회'],
+      negative:['환율 방향에 베팅한 포지션: 기회 손실','FX 트레이딩 수익 감소: 단기 투기 수요 감소','변동성 의존 전략: 모멘텀 약화'],
+      volatile:['방향성 탐색 구간의 성장주','외국인 수급 변화 민감 종목','실적 발표 앞둔 종목'],
+      signals:['원·달러 환율 밴드','외국인 누적 순매수','미 연준·한은 발언','무역수지 및 경상수지'],
+      meters:{금리:38,환율:70,유가:30,투자심리:60},
+      sentiment:{label:'Neutral',text:'환율 안정은 외국인 수급 불확실성을 낮춰 시장 전반에 긍정적이지만 강력한 방향성 촉매는 아닙니다.',deg:185,icon:'🌐'},
+      chart:{name:'코스피',data:[100,100,101,100,102,101,103,102,103,104]},
+      heat:['수출주:0','항공:+','반도체:0','음식료:+','조선:0','외국인수급:+','IT수출:0','내수:+'],
+      timeline:['환율 변동성 안정으로 단기 수급 불확실성 완화, 실적 중심 장세로 전환','기업별 펀더멘털에 따른 차별화 심화, 외국인 수급 점진적 개선 가능','환율 안정이 지속되면 국내 증시 디스카운트 해소 기대 형성 가능'],
+      checklist:[
+        {icon:'🔍',title:'안정이 얼마나 지속될 것인가?',text:'환율 안정의 구조적 배경(경상수지, 금리차)을 확인해야 지속성을 판단할 수 있습니다.'},
+        {icon:'📊',title:'실적 모멘텀을 점검하라',text:'환율 중립 구간에서는 기업 이익 성장성이 주가를 결정하는 핵심 요인입니다.'},
+        {icon:'⏱️',title:'외부 충격 변수를 모니터링하라',text:'연준 발언, 미 경제지표 서프라이즈가 환율 안정을 깰 수 있는 주요 리스크입니다.'},
+        {icon:'⚖️',title:'외국인 수급 개선 여부가 관건',text:'환율 안정이 실제 외국인 순매수로 이어지는지 데이터로 확인하는 것이 중요합니다.'}
+      ]
+    }
+  },
+
+  oil: {
+    up: {
+      theme:'유가 상승·에너지 강세',
+      flow:['유가 상승','에너지 기업 수익성 개선','물가 압력 증가','금리 인하 기대 약화'],
+      summary:[
+        '유가 상승은 정유·에너지 기업에는 직접적인 수익성 개선 요인이지만, 항공·운송·화학 등 에너지를 많이 쓰는 업종에는 비용 부담이 됩니다.',
+        '유가가 지속 상승하면 인플레이션 재자극 우려가 생겨 금리 인하 기대를 약화시킬 수 있어 성장주에도 간접적 부담이 됩니다.',
+        '특히 중동 지정학 리스크가 배경이라면 방산주 관심도 함께 높아지는 경향이 있습니다.'
+      ],
+      positive:['정유·에너지: 직접 수혜, 마진 개선','방산: 지정학 리스크 연계 관심 확대','조선(LNG선): 에너지 인프라 투자 확대 기대'],
+      negative:['항공: 연료비 직격탄, 비용 급증','운송·물류: 연료비 부담으로 마진 압박','화학: 납사 등 원재료 비용 상승'],
+      volatile:['정유·항공 동시 변동성','인플레이션 민감 성장주','원자재 ETF'],
+      signals:['WTI·브렌트유 가격','OPEC+ 감산 결정','중동 지정학 뉴스','미국 원유 재고 발표'],
+      meters:{금리:55,환율:40,유가:96,투자심리:58},
+      sentiment:{label:'Mixed',text:'유가 상승은 에너지 업종 호재이지만 물가 재자극으로 금리 기대를 악화시켜 시장 전반엔 부담입니다.',deg:160,icon:'🛢️'},
+      chart:{name:'정유·에너지',data:[100,102,104,107,106,109,110,108,111,113]},
+      heat:['정유:+','항공:-','화학:-','방산:+','조선:+','운송:-','에너지:+','소비재:-'],
+      timeline:['정유·에너지 즉각 주가 반응, 항공·운송 약세 동시 진행','유가 상승이 CPI에 반영되는 1~3개월 내 인플레 우려로 금리 경로 재점검','OPEC 정책과 지정학 리스크 변화에 따라 장기 에너지 투자 방향 결정'],
+      checklist:[
+        {icon:'🔍',title:'공급 충격인가, 수요 증가인가?',text:'공급 감소(OPEC 감산, 지정학)인지 수요 증가(경기 회복)인지에 따라 지속성이 크게 다릅니다.'},
+        {icon:'📊',title:'항공사 헤지 비율을 확인하라',text:'연료 헤지를 많이 한 항공사는 단기 충격이 제한되지만, 헤지 만료 시점이 분기 내 결과에 영향을 줍니다.'},
+        {icon:'⏱️',title:'인플레 재자극 여부가 핵심',text:'유가 상승이 CPI에 반영되면 연준 금리 경로 변화로 시장 전체에 이차 충격이 올 수 있습니다.'},
+        {icon:'⚖️',title:'정유 vs 항공 매우 명확히 갈린다',text:'같은 유가 뉴스에 정유주는 오르고 항공주는 하락하는 극단적 차별화가 나타납니다.'}
+      ]
+    },
+    down: {
+      theme:'유가 하락·에너지 약세',
+      flow:['유가 하락','에너지 기업 수익성 악화','운송·항공 비용 완화','인플레 압력 감소'],
+      summary:[
+        '유가 하락은 정유·에너지 기업의 수익성을 직접 악화시키지만, 항공·운송 등 연료 소비 업종에는 비용 절감 호재가 됩니다.',
+        '물가 하락 압력으로 인플레이션 우려가 완화되면 금리 인하 기대가 살아나 성장주에 긍정적 영향을 줄 수 있습니다.',
+        '수요 부진으로 인한 유가 하락이라면 경기 침체 신호로 해석될 수 있어 오히려 전반적인 위험회피 심리를 자극할 수 있습니다.'
+      ],
+      positive:['항공: 연료비 절감으로 마진 개선','운송·물류: 비용 부담 완화','소비재: 에너지 비용 하락, 소비 여력 개선'],
+      negative:['정유: 마진 직격탄','에너지·자원개발: 수익성 악화','중동 관련 방산: 지정학 관심도 감소'],
+      volatile:['정유·에너지 ETF','원자재 수출 국가 관련 종목','경기 연동 소재 업종'],
+      signals:['WTI·브렌트유 가격 추이','OPEC+ 추가 감산 가능성','글로벌 경기 선행 지표','미국 셰일 생산량'],
+      meters:{금리:52,환율:38,유가:88,투자심리:62},
+      sentiment:{label:'Mixed',text:'유가 하락은 에너지 업종 부담이지만 물가 안정→금리 인하 기대 연결로 성장주엔 긍정적일 수 있습니다.',deg:200,icon:'📉'},
+      chart:{name:'정유·에너지',data:[100,98,96,94,95,93,92,90,91,89]},
+      heat:['정유:-','항공:+','화학:+','방산:-','조선:-','운송:+','에너지:-','소비재:+'],
+      timeline:['정유·에너지 단기 주가 하락, 항공·운송주 반등 기대','유가 하락이 CPI에 반영되며 금리 인하 기대 재형성, 성장주 수혜 가능','유가 하락 원인이 수요 부진이면 경기 침체 우려로 장기 시장 방향 재점검'],
+      checklist:[
+        {icon:'🔍',title:'하락 원인이 무엇인가?',text:'OPEC 공급 증가(공급 충격)인지 글로벌 수요 둔화인지에 따라 시장 해석이 정반대가 됩니다.'},
+        {icon:'📊',title:'정유사 재고 평가손 확인',text:'유가 급락 시 정유사 재고자산 평가손이 발생해 분기 실적에 일회성 손실이 나타날 수 있습니다.'},
+        {icon:'⏱️',title:'금리 인하 기대 연결 여부',text:'물가 하락→인플레 둔화→금리 인하 기대로 이어지는 체인이 얼마나 빠르게 형성되는지가 핵심입니다.'},
+        {icon:'⚖️',title:'수요 부진 시나리오를 배제 말라',text:'경기 침체로 인한 유가 하락이라면 항공·소비재도 결국 수요 감소 타격을 피하기 어렵습니다.'}
+      ]
+    },
+    flat: {
+      theme:'유가 안정·에너지 중립',
+      flow:['유가 안정','에너지 비용 예측 가능','인플레 우려 완화','업종별 실적 차별화'],
+      summary:[
+        '유가가 안정되면 에너지 비용 불확실성이 줄어들어 항공·운송·화학 등 에너지 비용이 큰 업종의 실적 예측 가능성이 높아집니다.',
+        '인플레이션 압력도 완화되어 금리 경로 불확실성이 줄고 시장 전반의 변동성이 낮아지는 경향이 있습니다.',
+        '이 구간에서는 에너지 자체보다 각 기업의 실적 모멘텀과 업종별 수급이 주가를 결정합니다.'
+      ],
+      positive:['항공·운송: 비용 안정으로 실적 예측 가능성 향상','화학: 원자재 비용 안정으로 마진 관리 용이','전체 시장: 인플레 불안 감소로 안정적 환경'],
+      negative:['정유: 마진 확장 모멘텀 부재','에너지 테마주: 모멘텀 감소로 관심 약화','원자재 ETF: 변동성 감소로 트레이딩 기회 축소'],
+      volatile:['OPEC 정책 변화 모니터링 필요 종목','중동 지정학 민감 방산주','에너지 인프라 관련주'],
+      signals:['WTI·브렌트유 레인지','OPEC 회의 일정','글로벌 에너지 수요 전망','중동 지정학 동향'],
+      meters:{금리:45,환율:35,유가:70,투자심리:65},
+      sentiment:{label:'Neutral',text:'유가 안정은 시장 전반의 인플레 불안을 줄여 긍정적이지만 에너지 섹터 모멘텀은 약합니다.',deg:185,icon:'⚡'},
+      chart:{name:'코스피/전업종',data:[100,100,101,102,101,103,102,103,104,103]},
+      heat:['정유:0','항공:+','화학:+','방산:0','조선:0','운송:+','에너지:0','소비재:+'],
+      timeline:['유가 안정으로 단기 에너지 관련 변동성 축소, 실적 중심 장세로 전환','항공·화학 등 에너지 비용 민감 업종의 분기 마진 개선 여부 확인','유가 안정이 지속되면 인플레 우려 완화→금리 기대 정상화 시나리오 강화'],
+      checklist:[
+        {icon:'🔍',title:'안정이 구조적인가?',text:'OPEC 공급과 글로벌 수요가 균형 잡혀 있는지, 아니면 일시적 균형인지를 판단해야 합니다.'},
+        {icon:'📊',title:'항공·화학 마진 회복을 확인하라',text:'유가 안정이 몇 분기 지속되면 비용 민감 업종의 실적이 눈에 띄게 개선될 수 있습니다.'},
+        {icon:'⏱️',title:'OPEC 다음 회의 일정을 주시하라',text:'갑작스러운 감산 결정은 유가 안정을 깨는 주요 트리거가 될 수 있습니다.'},
+        {icon:'⚖️',title:'지정학 리스크는 항상 잠재한다',text:'중동 상황은 언제든 유가를 흔들 수 있어 지정학 뉴스 모니터링을 멈추지 마세요.'}
+      ]
+    }
+  },
+
+  earnings: {
+    up: {
+      theme:'어닝 서프라이즈·실적 호조',
+      flow:['실적 서프라이즈 발표','이익 전망 상향','밸류에이션 재평가','주가 상승 모멘텀'],
+      summary:[
+        '어닝 서프라이즈는 해당 기업뿐 아니라 동종 업종 전체의 이익 추정치를 끌어올리는 효과가 있어 섹터 전반에 긍정적입니다.',
+        '중요한 것은 실적의 절대값보다 시장 기대(컨센서스) 대비 얼마나 초과했는지이며, 이에 따라 주가 반응 폭이 결정됩니다.',
+        '특히 가이던스가 상향됐다면 다음 분기까지 주가 모멘텀이 이어질 가능성이 높습니다.'
+      ],
+      positive:['서프라이즈 기업: 즉각적인 주가 재평가','동종 업종: 이익 전망 동반 상향 기대','마진 개선 확인 기업: 구조적 수혜 재인식'],
+      negative:['경쟁사: 상대적 실적 열위 부각 우려','이미 주가 많이 오른 종목: 기대 소화 후 차익 실현','실적 발표 앞둔 타 종목: 기대치 상향으로 부담'],
+      volatile:['동종 업종 전체 단기 변동성','실적 발표 직전·직후 개별주','컨센서스 편차 큰 종목'],
+      signals:['매출 성장률 및 전년 대비 증감','영업이익률 변화','가이던스 상향 여부','컨센서스 대비 EPS 초과 폭'],
+      meters:{금리:18,환율:25,유가:15,투자심리:90},
+      sentiment:{label:'Risk On',text:'어닝 서프라이즈는 해당 기업과 업종의 투자 심리를 즉각 개선시킵니다. 이익 모멘텀이 지속되는지 가이던스가 핵심입니다.',deg:270,icon:'📈'},
+      chart:{name:'실적 발표 기업',data:[100,100,101,100,102,107,111,110,113,115]},
+      heat:['서프라이즈기업:+','동종업종:+','경쟁사:-','성장주:+','원가부담:±','마진개선:+','가이던스:+','테마주:+'],
+      timeline:['발표 당일 주가 갭업, 동종 업종으로 긍정 심리 전이','이후 1~3개월 동안 애널리스트 목표가 상향 및 수급 개선 지속','가이던스 상향이 실제로 실현되는지 다음 분기 실적에서 최종 검증'],
+      checklist:[
+        {icon:'🔍',title:'기대가 얼마나 높았는가?',text:'서프라이즈 폭(실제-컨센서스)이 크더라도 이미 주가에 반영됐다면 반응이 제한될 수 있습니다.'},
+        {icon:'📊',title:'일회성 요인인가?',text:'세금 환급, 자산 매각 등 일회성 이익이 포함됐다면 반복 가능한 실적인지 구분이 필요합니다.'},
+        {icon:'⏱️',title:'가이던스가 핵심이다',text:'과거 실적보다 미래 가이던스가 주가 모멘텀을 결정합니다. 가이던스 상향 여부를 반드시 확인하세요.'},
+        {icon:'⚖️',title:'동종 업종 연쇄 효과',text:'한 기업의 서프라이즈가 업종 전체의 이익 추정치를 끌어올리면 섹터 전반에 매수세가 유입됩니다.'}
+      ]
+    },
+    down: {
+      theme:'어닝 쇼크·실적 부진',
+      flow:['실적 쇼크 발표','이익 전망 하향','밸류에이션 재산정','주가 하락 압력'],
+      summary:[
+        '어닝 쇼크는 해당 기업의 이익 추정치를 끌어내리고, 동종 업종 전체에 대한 실적 불안을 자극합니다.',
+        '특히 가이던스까지 하향됐다면 단순 일회성이 아닌 구조적 문제로 해석되어 주가 조정이 장기화될 수 있습니다.',
+        '실적 쇼크의 원인이 업황(경기)인지, 기업 고유 문제(원가·경쟁)인지를 구분하는 것이 동종 업종 영향을 판단하는 핵심입니다.'
+      ],
+      positive:['경쟁사: 상대적 실적 우위 부각 기회','방어주·배당주: 불확실성 속 안정적 대안으로 부각','공매도 포지션: 단기 수익 기회'],
+      negative:['쇼크 기업: 주가 급락, 목표가 하향','동종 업종: 연쇄 실적 우려 확산','컨센서스 높았던 고PER주: 밸류에이션 부담 재부각'],
+      volatile:['실적 발표 직후 해당 주','동종 업종 전체','테마 연결 성장주'],
+      signals:['영업이익률 감소 폭','가이던스 하향 여부 및 폭','비용 증가 항목(원가·인건비·R&D)','다음 분기 컨센서스 변화'],
+      meters:{금리:20,환율:28,유가:18,투자심리:22},
+      sentiment:{label:'Risk Off',text:'어닝 쇼크는 해당 기업과 업종의 투자 심리를 즉각 악화시킵니다. 가이던스 하향 여부에 따라 충격 지속 기간이 결정됩니다.',deg:70,icon:'📉'},
+      chart:{name:'실적 발표 기업',data:[100,100,99,100,98,93,89,90,88,87]},
+      heat:['쇼크기업:-','동종업종:-','경쟁사:+','성장주:-','원가부담:-','마진악화:-','가이던스:-','방어주:+'],
+      timeline:['발표 당일 주가 갭다운, 동종 업종 동반 약세 및 목표가 하향','1~3개월 내 애널리스트 실적 추정치 하향 조정, 수급 이탈 지속 가능','가이던스 현실화 여부 및 구조적 개선 시그널이 주가 바닥을 결정'],
+      checklist:[
+        {icon:'🔍',title:'이미 주가에 반영됐는가?',text:'실적 발표 전 주가가 이미 급락했다면 "Sell the rumor, Buy the fact" 패턴이 나타날 수 있습니다.'},
+        {icon:'📊',title:'구조적 문제인가, 일시적인가?',text:'원가 급등, 수요 둔화 등 구조적 요인이면 회복이 느리고, 일회성이면 다음 분기 반등 가능합니다.'},
+        {icon:'⏱️',title:'가이던스 하향 폭이 핵심',text:'가이던스를 얼마나 낮췄는지가 주가 조정 기간과 폭을 결정하는 가장 중요한 변수입니다.'},
+        {icon:'⚖️',title:'업종 연쇄 vs 기업 고유 문제',text:'업황 부진이면 동종 업종 전체가 하락하고, 기업 고유 문제라면 경쟁사에 반사이익이 나타납니다.'}
+      ]
+    },
+    flat: {
+      theme:'실적 인라인·예상 부합',
+      flow:['실적 컨센서스 부합','추정치 변화 제한','개별 모멘텀 탐색','다음 이슈로 관심 이동'],
+      summary:[
+        '실적이 컨센서스에 부합하면 주가는 크게 움직이지 않는 경우가 많습니다. "Buy the rumor, Sell the fact" 패턴이 나타나기도 합니다.',
+        '중요한 것은 가이던스인데, 가이던스가 기대치에 부합하거나 약간 상향돼야 주가 모멘텀이 유지됩니다.',
+        '이 구간에서는 다음 분기 실적 모멘텀과 업종 내 차별화 포인트를 미리 탐색하는 것이 유효합니다.'
+      ],
+      positive:['가이던스 유지·소폭 상향 기업: 모멘텀 지속','실적 안정 확인으로 방어적 매력 부각','업종 내 상대적 우위 기업: 재평가 가능성'],
+      negative:['주가 기대가 높았던 종목: 기대 소화 후 차익 실현','가이던스 동결: 추가 상승 촉매 부재','이미 밸류에이션이 높은 종목: 재평가 명분 약화'],
+      volatile:['기대치와 실제 사이 갭 큰 종목','다음 분기 이슈 민감 종목','실적 외 이벤트(M&A, 신제품) 앞둔 종목'],
+      signals:['가이던스 변화 여부','영업이익률 트렌드','다음 분기 컨센서스 방향','주요 비용 항목 변화'],
+      meters:{금리:18,환율:22,유가:15,투자심리:58},
+      sentiment:{label:'Neutral',text:'인라인 실적은 불확실성을 줄이지만 강한 상승 모멘텀을 만들기도 어렵습니다. 가이던스가 방향을 결정합니다.',deg:180,icon:'📊'},
+      chart:{name:'실적 발표 기업',data:[100,100,101,100,101,102,101,103,102,103]},
+      heat:['해당기업:0','동종업종:0','경쟁사:0','성장주:±','원가:0','마진:+','가이던스:±','테마주:0'],
+      timeline:['발표 당일 소폭 변동 후 빠르게 안정, 주도주 관심은 다음 이슈로 이동','1~3개월 내 다음 분기 실적 모멘텀 여부가 주가 방향 결정','구조적 성장 스토리가 유효한 기업은 장기 투자 매력 재확인 구간'],
+      checklist:[
+        {icon:'🔍',title:'기대가 높았는가 낮았는가?',text:'인라인도 기대가 매우 높았다면 실망 매물이 나올 수 있고, 낮았다면 안도 매수가 나올 수 있습니다.'},
+        {icon:'📊',title:'가이던스 뉘앙스를 읽어라',text:'숫자는 인라인이라도 경영진의 코멘트에서 낙관/비관 신호를 포착하는 것이 중요합니다.'},
+        {icon:'⏱️',title:'다음 분기 이슈를 미리 찾아라',text:'인라인 실적 이후 시장은 이미 다음 분기 모멘텀을 탐색하기 시작합니다. 선행 지표를 주시하세요.'},
+        {icon:'⚖️',title:'업종 내 차별화를 활용하라',text:'인라인 기업 중에서도 마진 개선폭, 신사업 진척 등 차별화 포인트가 있는 종목을 선별하는 것이 유효합니다.'}
+      ]
+    }
+  },
+
+  trade: {
+    up: {
+      theme:'무역 규제·관세 강화',
+      flow:['관세·규제 부과 발표','공급망 비용 상승','수출 의존 기업 타격','대체재·내수 기업 부각'],
+      summary:[
+        '관세 강화나 무역 규제는 수출 의존도가 높은 기업의 비용을 높이고 시장 접근성을 제한해 직접적인 실적 타격을 줍니다.',
+        '공급망 재편 과정에서 부품 조달 비용이 상승하고 납기 지연이 발생할 수 있어 제조업 전반에 불확실성이 커집니다.',
+        '한편 국내 대체재나 공급망 다변화 수혜 기업은 반사이익을 받을 수 있어 업종 내 극단적 차별화가 나타납니다.'
+      ],
+      positive:['소재·부품·장비(소부장): 국내 대체 수요 확대','방어적 내수 업종: 글로벌 충격 상대적 회피','공급망 재편 수혜 기업: 새로운 조달처 역할'],
+      negative:['수출 의존 대기업: 관세 부담으로 가격경쟁력 약화','중국 매출 비중 높은 기업: 규제·보복 리스크','부품 수입 의존 제조업: 원가 상승 직격'],
+      volatile:['반도체·전기차·배터리 공급망','중국 소비 관련주','수출 대형주 전반'],
+      signals:['관세 발표 내용 및 발효 시점','수출입 지표 변화','PMI 제조업 지수','주요국 보복 조치 여부'],
+      meters:{금리:22,환율:52,유가:25,투자심리:38},
+      sentiment:{label:'Risk Off',text:'무역 규제는 공급망 불확실성을 높여 제조업 전반의 실적 전망을 흐리게 합니다. 피해·수혜 업종 구분이 핵심입니다.',deg:100,icon:'🚢'},
+      chart:{name:'수출 대형주',data:[100,98,96,94,95,93,92,94,93,91]},
+      heat:['수출주:-','소부장:+','반도체:-','전기차:-','내수주:+','중국소비:-','물류:±','방어주:+'],
+      timeline:['규제 발표 직후 수출주 급락, 소부장·내수주 반사 강세 단기 나타남','1~3개월 내 실제 공급망 재편 비용과 대체 조달처 확보 여부 확인','장기적으로 공급망 재편이 완료되면 새로운 수혜 기업군 부각'],
+      checklist:[
+        {icon:'🔍',title:'규제 범위와 강도를 확인하라',text:'어떤 품목에, 얼마의 세율로, 언제부터 적용되는지 구체적인 내용이 충격 강도를 결정합니다.'},
+        {icon:'📊',title:'중국 매출 비중을 점검하라',text:'중국향 매출 비중이 높은 기업일수록 직접 타격이 크고, 보복 리스크도 높습니다.'},
+        {icon:'⏱️',title:'단기 이슈인가, 구조적 재편인가?',text:'협상 가능한 단기 조치인지, 장기 디커플링 구조인지에 따라 대응 전략이 완전히 달라집니다.'},
+        {icon:'⚖️',title:'소부장 수혜 종목을 선별하라',text:'수입 대체 수요가 생기는 소재·부품·장비 기업 중 실제 기술력이 있는 곳을 선별하는 것이 기회입니다.'}
+      ]
+    },
+    down: {
+      theme:'무역 완화·규제 해소',
+      flow:['관세 인하·규제 완화 발표','공급망 비용 감소 기대','수출 기업 실적 전망 개선','글로벌 교역량 회복 기대'],
+      summary:[
+        '관세 인하나 무역 규제 완화는 수출 의존 기업의 비용 부담을 낮추고 시장 접근성을 회복시켜 실적 전망 개선으로 이어집니다.',
+        '공급망 불확실성이 줄어들면 제조업 전반의 투자·생산 계획이 정상화되고, 글로벌 교역량 회복 기대가 생깁니다.',
+        '단, 규제 완화가 실제 이행으로 이어지는지, 추가 협상 이슈가 남아있는지를 확인해야 합니다.'
+      ],
+      positive:['수출 대기업: 관세 부담 완화, 가격경쟁력 회복','반도체·전기차 공급망: 조달 정상화 기대','글로벌 물류·운송: 교역량 회복 수혜'],
+      negative:['국내 대체재(소부장) 일부: 수입 대체 수요 감소','규제 완화 수혜 선반영 종목: 차익 실현 가능','보호주의 수혜 내수주: 상대적 모멘텀 약화'],
+      volatile:['반도체·배터리 공급망 관련주','중국 소비 관련주','글로벌 교역 민감 종목'],
+      signals:['협상 타결 세부 내용','발효 시점 및 이행 일정','WTO 등 국제기구 반응','주요 수출입 지표 변화'],
+      meters:{금리:20,환율:48,유가:22,투자심리:72},
+      sentiment:{label:'Risk On',text:'무역 규제 완화는 글로벌 교역 회복 기대를 높이고 수출 기업 실적 전망을 개선시켜 위험자산 선호를 자극합니다.',deg:250,icon:'🤝'},
+      chart:{name:'수출 대형주',data:[100,101,103,105,104,106,107,106,108,110]},
+      heat:['수출주:+','소부장:-','반도체:+','전기차:+','내수주:±','중국소비:+','물류:+','방어주:-'],
+      timeline:['규제 완화 발표 직후 수출주 급등, 글로벌 교역 관련 종목 동반 강세','1~3개월 내 실제 교역 데이터 개선 확인, 기업 실적 추정치 상향 조정','장기적으로 공급망 안정화와 글로벌 분업 회복이 제조업 성장 기반 강화'],
+      checklist:[
+        {icon:'🔍',title:'선반영 여부를 체크하라',text:'협상 기대감으로 이미 주가가 많이 올랐다면 실제 발표 후 차익 실현 매물이 나올 수 있습니다.'},
+        {icon:'📊',title:'실제 이행 일정을 확인하라',text:'합의 내용이 실제 발효되는 시점과 이행 조건이 시장 반응의 지속성을 결정합니다.'},
+        {icon:'⏱️',title:'추가 협상 이슈가 남아있는가?',text:'1단계 합의에 불과하다면 다음 협상 라운드가 불확실성을 다시 높일 수 있습니다.'},
+        {icon:'⚖️',title:'수혜 기업을 구체적으로 골라라',text:'업종 전반보다 관세 인하 품목과 직접 연관된 기업을 선별하는 것이 초과수익의 핵심입니다.'}
+      ]
+    },
+    flat: {
+      theme:'무역 협상 진행 중',
+      flow:['무역 협상 진행','불확실성 지속','업종별 눈치보기','데이터 확인 대기'],
+      summary:[
+        '협상이 진행 중인 상황은 결과의 방향성이 불분명해 수출·수입 업종 모두 포지션을 잡기 어려운 구간입니다.',
+        '시장은 협상 진척 상황에 따른 헤드라인 리스크에 민감하게 반응하며, 변동성이 높게 유지됩니다.',
+        '이 구간에서는 협상 결과에 상대적으로 덜 민감한 내수·방어 업종이 상대적 강세를 보이는 경향이 있습니다.'
+      ],
+      positive:['내수·방어주: 글로벌 무역 불확실성 상대적 회피','협상 수혜 기대주: 낙관론 확산 시 선행 반응','M&A·사업 재편: 불확실성 속 구조조정 관심'],
+      negative:['수출 의존 기업: 계획·투자 불확실성 지속','공급망 의존 제조업: 대체 조달 비용 발생','중국 노출 기업: 보복 리스크 잠재'],
+      volatile:['협상 헤드라인 민감 수출주','반도체·배터리 밸류체인','중국 소비·여행 관련주'],
+      signals:['협상 일정 및 발언 내용','무역수지 월별 추이','기업 가이던스 변화','PMI 제조업 지수'],
+      meters:{금리:22,환율:50,유가:22,투자심리:45},
+      sentiment:{label:'Mixed',text:'협상 진행 중 불확실성은 수출주에 부담이지만 합의 기대감도 공존합니다. 헤드라인 변동성이 높은 구간입니다.',deg:170,icon:'🔄'},
+      chart:{name:'수출 대형주',data:[100,99,101,100,98,100,102,101,99,101]},
+      heat:['수출주:±','소부장:+','반도체:±','전기차:±','내수주:+','중국소비:±','물류:0','방어주:+'],
+      timeline:['협상 진척 헤드라인에 따라 단기 주가 급등락 반복, 변동성 확대 구간','협상 타결/결렬 중 하나의 결론이 나오면 방향성 급격히 결정될 수 있어 준비 필요','장기적으로 무역 구조 재편 방향에 맞춰 공급망 포지셔닝 미리 검토'],
+      checklist:[
+        {icon:'🔍',title:'협상 타결 가능성을 가늠하라',text:'양측의 정치적 인센티브와 마감 시한 여부가 타결 가능성을 판단하는 핵심 변수입니다.'},
+        {icon:'📊',title:'실적에 이미 반영됐는가?',text:'기업들이 불확실성을 감안해 가이던스를 보수적으로 잡았다면 타결 시 상향 여지가 있습니다.'},
+        {icon:'⏱️',title:'헤드라인 리스크를 관리하라',text:'협상 중단·재개 뉴스가 언제 터질지 모르는 구간에서는 포지션 크기 조절이 중요합니다.'},
+        {icon:'⚖️',title:'타결과 결렬 시나리오를 모두 준비하라',text:'두 시나리오 각각에서 수혜·피해 업종을 미리 정리해두면 빠른 대응이 가능합니다.'}
+      ]
+    }
+  }
+};
+
+// ── 3. 분석 엔진 ──────────────────────────────────
+function getText() {
+  return (
+    document.getElementById('t0').value + ' ' +
+    document.getElementById('l0').value + ' ' +
+    document.getElementById('h0').value
+  ).toLowerCase();
+}
+
+function countScore(t, arr) {
+  return arr.reduce((sum, k) => sum + (t.includes(k) ? 1 : 0), 0);
+}
+
+function getTopics(t) {
+  return {
+    rate:     countScore(t, KW.rate),
+    fx:       countScore(t, KW.fx),
+    oil:      countScore(t, KW.oil),
+    earnings: countScore(t, KW.earnings),
+    trade:    countScore(t, KW.trade),
+    macro:    countScore(t, KW.macro),
+    policy:   countScore(t, KW.policy),
+  };
+}
+
+function getDirection(t) {
+  const upScore   = UP_KW.filter(k => t.includes(k)).length;
+  const downScore = DOWN_KW.filter(k => t.includes(k)).length;
+  const flatScore = FLAT_KW.filter(k => t.includes(k)).length;
+  if (flatScore > 0 && flatScore >= upScore && flatScore >= downScore) return 'flat';
+  if (upScore > downScore) return 'up';
+  if (downScore > upScore) return 'down';
+  return 'flat';
+}
+
+function getConfidence(topScore) {
+  if (topScore >= 4) return '높음';
+  if (topScore >= 2) return '보통';
+  if (topScore >= 1) return '낮음';
+  return '분석 참고';
+}
+
+// 관심 종목 파싱
+function parseTickers(hint) {
+  if (!hint.trim()) return [];
+  return hint.split(/[,，、\s]+/).map(s => s.trim()).filter(Boolean);
+}
+
+// 차트 데이터에 약간의 무작위성 추가 (같은 카테고리라도 매번 다르게)
+function varyChart(baseData, seed) {
+  const variation = (seed % 5) - 2; // -2 ~ +2 범위
+  return baseData.map((v, i) => {
+    const noise = ((seed * (i + 1)) % 5) - 2;
+    return Math.max(85, Math.min(120, v + variation + noise * 0.4));
+  });
+}
+
+// 복합 이슈 라벨
+function getMixedLabel(topics, topKey) {
+  const sorted = Object.entries(topics).sort((a, b) => b[1] - a[1]);
+  const second = sorted[1];
+  const topNames = { rate:'금리', fx:'환율', oil:'유가', earnings:'실적', trade:'무역', macro:'경기', policy:'정책' };
+  if (second && second[1] > 0 && sorted[0][1] - second[1] <= 1) {
+    return `복합 이슈: ${topNames[topKey]} + ${topNames[second[0]] || second[0]}`;
+  }
+  return null;
+}
+
+function getDirectionTag(dir, topKey) {
+  // 상승/하락 direction 라벨
+  const map = {
+    up:   { rate:'금리 인하 기대', fx:'원화 약세', oil:'유가 상승', earnings:'어닝 서프라이즈', trade:'규제 강화' },
+    down: { rate:'금리 인상 우려', fx:'원화 강세', oil:'유가 하락', earnings:'어닝 쇼크', trade:'규제 완화' },
+    flat: { rate:'금리 동결', fx:'환율 보합', oil:'유가 안정', earnings:'실적 인라인', trade:'협상 진행 중' }
+  };
+  return map[dir]?.[topKey] || (dir === 'up' ? '상승/호재 신호' : dir === 'down' ? '하락/리스크 신호' : '중립/관망 신호');
+}
+
+function getDirectionClass(dir) {
+  return dir === 'up' ? 'tag-green' : dir === 'down' ? 'tag-red' : 'tag-amber';
+}
+
+function build() {
+  const t = getText();
+  const topics = getTopics(t);
+  const sorted = Object.entries(topics).sort((a, b) => b[1] - a[1]);
+  const topKey = sorted[0][0];
+  const topScore = sorted[0][1];
+  const dir = getDirection(t);
+  const hint = document.getElementById('h0').value.trim();
+  const tickers = parseTickers(hint);
+  const title = document.getElementById('t0').value.trim();
+
+  // fallback: 아무 키워드도 없으면 제목 첫 글자 기반으로 카테고리 선택
+  const finalKey = topScore === 0
+    ? (['rate','fx','oil','earnings','trade'][(title.charCodeAt(0) || 0) % 5])
+    : topKey;
+
+  const base = DATA[finalKey]?.[dir] || DATA[finalKey]?.flat || DATA.earnings.flat;
+  const mixedLabel = getMixedLabel(topics, finalKey);
+  const dirLabel = getDirectionTag(dir, finalKey);
+  const dirClass = getDirectionClass(dir);
+  const conf = getConfidence(topScore);
+
+  // 차트 변형 (제목 글자 수 기반 seed)
+  const seed = title.length + (tickers.length * 7);
+  const chartData = varyChart(base.chart.data, seed);
+
+  // 관심 종목 있으면 signals에 추가
+  const signals = [...base.signals];
+  if (tickers.length > 0) {
+    signals.push(...tickers.slice(0, 2).map(t => `${t} 주가 및 수급 동향`));
+  }
+
+  return {
+    title, hint, tickers, dir, dirLabel, dirClass, conf,
+    theme: mixedLabel || base.theme,
+    flow: base.flow,
+    summary: base.summary,
+    meters: base.meters,
+    sentiment: base.sentiment,
+    chart: { name: tickers.length > 0 ? tickers[0] + ' 외 관련주' : base.chart.name, data: chartData },
+    positive: base.positive,
+    negative: base.negative,
+    volatile: base.volatile,
+    signals: signals.slice(0, 5),
+    heat: base.heat,
+    timeline: base.timeline,
+    checklist: base.checklist,
+  };
+}
+
+// ════════════════════════════════════════════════
+//  RENDER
+// ════════════════════════════════════════════════
+let A = null;
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => {
+    p.classList.remove('on');
+    p.style.display = 'none';
+  });
+  const el = document.getElementById(id);
+  el.classList.add('on');
+  el.style.display = id === 'home' ? 'flex' : 'block';
+  window.scrollTo(0, 0);
+}
+
+function renderSummary() {
+  document.getElementById('outTitle').textContent = A.title;
+  document.getElementById('outTheme').textContent = A.theme;
+
+  const dirEl = document.getElementById('outDir');
+  dirEl.textContent = A.dirLabel;
+  dirEl.className = 'tag ' + A.dirClass;
+
+  document.getElementById('outConf').textContent = `신뢰도 ${A.conf}`;
+
+  const labels = ['핵심 변수', '시장 해석', '투자 관점'];
+  document.getElementById('sumGrid').innerHTML =
+    A.summary.map((s, i) => `
+      <div class="sum-card">
+        <div class="sum-num">${i + 1}</div>
+        <h3>${labels[i]}</h3>
+        <p>${s}</p>
+      </div>`).join('') +
+    `<div class="hint-card">
+        <h3>관심 종목 반영</h3>
+        <p>${A.tickers.length > 0
+          ? `입력하신 <strong>${A.tickers.slice(0,3).join(', ')}</strong> 등은 후속 관찰 지표에 반영되며, 차트 명칭에도 표시됩니다.`
+          : '관심 종목이나 업종을 함께 입력하면 분석 결과에 반영됩니다.'
+        }</p>
+      </div>`;
+}
+
+function renderDash() {
+  // flow
+  document.getElementById('flowStrip').innerHTML = A.flow.map((f, i) =>
+    `<span>${f}</span>${i < A.flow.length - 1 ? '<span class="flow-arr">→</span>' : ''}`
+  ).join('');
+
+  // meters
+  document.getElementById('mList').innerHTML = Object.entries(A.meters).map(([k, v]) => `
+    <div class="m-row">
+      <span class="m-lbl">${k}</span>
+      <div class="m-track"><div class="m-fill" style="width:${v}%"></div></div>
+      <span class="m-val">${v}</span>
+    </div>`).join('');
+
+  // gauge
+  document.getElementById('gLabel').textContent = A.sentiment.label;
+  document.getElementById('gText').textContent = A.sentiment.text;
+  document.getElementById('gauge').style.setProperty('--deg', A.sentiment.deg + 'deg');
+  document.getElementById('gaugeIcon').textContent = A.sentiment.icon;
+
+  // chart
+  document.getElementById('chartNm').textContent = A.chart.name;
+  const d = A.chart.data;
+  const mn = Math.min(...d) - 2, mx = Math.max(...d) + 2;
+  const pts = d.map((v, i) => [i * (700 / (d.length - 1)), 125 - ((v - mn) / (mx - mn)) * 105]);
+  const ls = pts.map(p => p.join(',')).join(' ');
+  document.getElementById('chartSvg').innerHTML = `
+    <line class="cx" x1="0" y1="125" x2="700" y2="125"/>
+    <polygon class="ca" points="0,140 ${ls} 700,140"/>
+    <polyline class="cl" points="${ls}"/>
+    ${pts.map(p => `<circle class="cd" cx="${p[0]}" cy="${p[1]}" r="3.5"/>`).join('')}`;
+
+  // impact
+  document.getElementById('posL').innerHTML = A.positive.map(x => `<li>${x}</li>`).join('');
+  document.getElementById('negL').innerHTML = A.negative.map(x => `<li>${x}</li>`).join('');
+  document.getElementById('volL').innerHTML = A.volatile.map(x => `<li>${x}</li>`).join('');
+
+  // heatmap
+  document.getElementById('hmap').innerHTML = A.heat.map(item => {
+    const [nm, sg] = item.split(':');
+    const cls = sg === '+' ? 'hp' : sg === '-' ? 'hn' : sg === '±' ? 'hm' : 'h0';
+    const lbl = sg === '+' ? '긍정 가능' : sg === '-' ? '부정 가능' : sg === '±' ? '혼재·변동성' : '중립';
+    return `<div class="hcell ${cls}"><strong>${nm}</strong><p>${lbl}</p></div>`;
+  }).join('');
+
+  // timeline
+  const tLabels = ['단기 반응', '중기 전망', '장기 시나리오'];
+  const tPeriods = ['1~3일', '1~3개월', '6개월+'];
+  document.getElementById('tlGrid').innerHTML = A.timeline.map((t, i) => `
+    <div class="tl-card">
+      <div class="tl-period">${tPeriods[i]}</div>
+      <h3>${tLabels[i]}</h3>
+      <p>${t}</p>
+    </div>`).join('');
+
+  // checklist
+  document.getElementById('ckList').innerHTML = A.checklist.map(c => `
+    <div class="ck-item">
+      <div class="ck-icon">${c.icon}</div>
+      <div><strong>${c.title}</strong><p>${c.text}</p></div>
+    </div>`).join('');
+
+  // signals
+  document.getElementById('sigList').innerHTML = A.signals.map(s => `
+    <div class="sig-row">
+      <span class="sig-nm">${s}</span>
+      <span class="sig-tag">후속 확인 필요</span>
+    </div>`).join('');
+
+  // ticker chips
+  if (A.tickers.length > 0) {
+    document.getElementById('tickerSection').style.display = 'block';
+    document.getElementById('tickerChips').innerHTML =
+      A.tickers.map(t => `<span class="chip">${t}</span>`).join('');
+  } else {
+    document.getElementById('tickerSection').style.display = 'none';
+  }
+}
+
+// ── EVENTS ────────────────────────────────────────────
+document.getElementById('analyzeBtn').onclick = () => {
+  const title = document.getElementById('t0').value.trim();
+  const err = document.getElementById('homeErr');
+  if (!title) { err.textContent = '기사 제목을 입력해 주세요.'; return; }
+  err.textContent = '';
+  A = build();
+  renderSummary();
+  showPage('pgSummary');
+};
+
+document.getElementById('s-back').onclick = () => showPage('home');
+document.getElementById('s-re').onclick   = () => showPage('home');
+document.getElementById('s-dash').onclick = () => { renderDash(); showPage('pgDash'); };
+document.getElementById('d-sum').onclick  = () => showPage('pgSummary');
+document.getElementById('d-home').onclick = () => showPage('home');
+</script>
+</body>
+</html>
