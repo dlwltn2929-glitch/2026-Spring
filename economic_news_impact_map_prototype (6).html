@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stock News Impact Viewer</title>
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;background:#f6f8fb;color:#0f172a}
+    .app{min-height:100vh;display:flex;justify-content:center;align-items:center;padding:28px 18px}
+    .shell{width:100%;max-width:1180px;min-height:820px;background:#fff;border:1px solid #e2e8f0;border-radius:32px;box-shadow:0 24px 70px rgba(15,23,42,.08);overflow:hidden}
+    .screen{display:none;min-height:820px;padding:48px}.screen.active{display:block}
+    .hero{min-height:724px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+    .eyebrow{font-size:.92rem;font-weight:800;color:#2563eb;margin-bottom:14px}
+    h1{margin:0;font-size:3.05rem;line-height:1.14;letter-spacing:-.04em}
+    .subtext{max-width:760px;margin:18px auto 0;color:#64748b;font-size:1.04rem;line-height:1.8}
+    .guide{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:20px}.pill{padding:9px 13px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-size:.9rem;font-weight:700}
+    .input-panel{width:100%;max-width:880px;margin-top:34px;background:#fff;border:1px solid #dbe2ea;border-radius:28px;padding:20px;box-shadow:0 14px 34px rgba(15,23,42,.06);text-align:left}
+    .field{margin-bottom:14px}.field:last-child{margin-bottom:0}.label{display:block;font-size:.92rem;font-weight:800;color:#334155;margin-bottom:10px}
+    input,textarea{width:100%;border:1px solid #e2e8f0;border-radius:18px;padding:15px 16px;outline:none;font:inherit;color:#0f172a;transition:.18s ease}textarea{min-height:92px;resize:vertical;line-height:1.7}input:focus,textarea:focus{border-color:#60a5fa;box-shadow:0 0 0 4px rgba(96,165,250,.12)}
+    .row{display:flex;gap:12px;align-items:center}.btn{border:none;border-radius:999px;padding:13px 20px;font-size:.96rem;font-weight:800;cursor:pointer;transition:.18s ease;white-space:nowrap;font-family:inherit}.btn:hover{transform:translateY(-1px)}.btn-primary{background:#2563eb;color:white}.btn-soft{background:#eff6ff;color:#1d4ed8}.btn-gray{background:#f1f5f9;color:#334155}
+    .note{margin-top:14px;color:#64748b;font-size:.9rem;line-height:1.65}.warn{margin-top:14px;color:#dc2626;font-size:.9rem;font-weight:700}
+    .topbar{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:26px}.title h2{margin:0;font-size:1.9rem;letter-spacing:-.035em}.title p{margin:8px 0 0;color:#64748b;line-height:1.65}.ghost{border:none;background:transparent;color:#475569;font:inherit;cursor:pointer}
+    .card{background:#fff;border:1px solid #e2e8f0;border-radius:28px;padding:26px;box-shadow:0 16px 38px rgba(15,23,42,.05)}
+    .article-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:20px;padding:18px;margin-bottom:20px}.small{font-size:.82rem;font-weight:800;color:#2563eb;margin-bottom:8px}.article-title{font-size:1.1rem;font-weight:800;line-height:1.55}.article-link{margin-top:8px;color:#64748b;font-size:.88rem;word-break:break-all}.badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.badge{display:inline-block;padding:7px 11px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-size:.82rem;font-weight:800}.badge.gray{background:#f8fafc;color:#475569;border:1px solid #e2e8f0}
+    .summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.summary-item{background:#f8fafc;border:1px solid #e2e8f0;border-radius:20px;padding:18px}.summary-item .num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#2563eb;color:white;font-weight:900;font-size:.86rem;margin-bottom:12px}.summary-item h3{margin:0 0 8px;font-size:1rem}.summary-item p{margin:0;color:#475569;line-height:1.7;font-size:.94rem}
+    .actions{display:flex;justify-content:center;gap:12px;margin-top:24px;flex-wrap:wrap}
+    .dash{display:grid;grid-template-columns:1fr;gap:20px}.flow{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:#f8fbff;border:1px solid #dbeafe;border-radius:22px;padding:18px 20px;color:#1e3a8a;font-weight:900}.arrow{color:#60a5fa;font-size:1.2rem}.section-title{margin:0 0 14px;font-size:1.18rem;letter-spacing:-.02em}
+    .impact-table{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.impact-box{border:1px solid #e2e8f0;border-radius:24px;padding:20px;background:#fff}.impact-box.good{background:linear-gradient(180deg,#fff 0%,#f0fdf4 100%)}.impact-box.bad{background:linear-gradient(180deg,#fff 0%,#fef2f2 100%)}.impact-box.watch{background:linear-gradient(180deg,#fff 0%,#fff7ed 100%)}.impact-box h3{margin:0 0 12px;font-size:1.08rem}.impact-box ul{margin:0;padding-left:18px;color:#334155;line-height:1.75;font-size:.94rem}
+    .two{display:grid;grid-template-columns:1.05fr .95fr;gap:20px}.checklist{display:grid;gap:12px}.check{display:flex;gap:12px;align-items:flex-start;background:#f8fafc;border:1px solid #e2e8f0;border-radius:18px;padding:15px}.check .icon{font-size:1.2rem}.check strong{display:block;margin-bottom:4px}.check p{margin:0;color:#475569;line-height:1.65;font-size:.93rem}
+    .signal{display:grid;gap:12px}.signal-row{display:flex;justify-content:space-between;gap:12px;align-items:center;border:1px solid #e2e8f0;border-radius:18px;padding:14px;background:#f8fafc}.signal-row span:first-child{font-weight:800}.signal-row .value{font-size:.9rem;color:#475569;text-align:right}
+    .disclaimer{margin-top:16px;color:#64748b;font-size:.84rem;line-height:1.6;text-align:center}
+    @media(max-width:980px){.screen{padding:28px}h1{font-size:2.25rem}.summary-grid,.impact-table,.two{grid-template-columns:1fr}}
+    @media(max-width:720px){.shell{border-radius:24px;min-height:auto}.screen{padding:22px;min-height:auto}.hero{min-height:720px}.row{flex-direction:column;align-items:stretch}.btn{width:100%}}
+  </style>
+</head>
+<body>
+<div class="app"><div class="shell">
+  <section class="screen active" id="home">
+    <div class="hero">
+      <div class="eyebrow">개미 투자자를 위한 뉴스 해석</div>
+      <h1>이 뉴스가<br>주식시장에 미치는 영향은?</h1>
+      <p class="subtext">경제 뉴스의 핵심 변수를 잡고, 어떤 업종에 긍정적·부정적 영향을 줄 수 있는지 투자자 관점에서 정리해주는 화면입니다.</p>
+      <div class="guide"><span class="pill">시장 변수 추출</span><span class="pill">업종별 영향</span><span class="pill">체크포인트</span><span class="pill">투자 리스크</span></div>
+      <div class="input-panel">
+        <div class="field"><label class="label" for="newsTitle">기사 제목</label><input id="newsTitle" placeholder="예: 연준 금리 인하 기대 후퇴에 나스닥 하락" /></div>
+        <div class="field"><label class="label" for="newsLink">기사 링크</label><div class="row"><input id="newsLink" placeholder="https://example.com/article" /><button class="btn btn-primary" id="analyzeBtn">분석하기</button></div></div>
+        <div class="field"><label class="label" for="tickerHint">관심 종목/업종 (선택)</label><textarea id="tickerHint" placeholder="예: 삼성전자, SK하이닉스, 2차전지, 항공주, 은행주 등"></textarea></div>
+        <div class="note">현재 버전은 기사 제목과 입력 단서를 바탕으로 시장 영향 시나리오를 생성합니다. 매수·매도 추천이 아닌 투자 판단 보조용 화면입니다.</div>
+      </div>
+      <div class="warn" id="homeWarn"></div>
+    </div>
+  </section>
+
+  <section class="screen" id="summary">
+    <div class="topbar"><div class="title"><h2>시장 영향 요약</h2><p>뉴스가 주식시장에 미칠 수 있는 핵심 영향을 먼저 정리했습니다.</p></div><button class="ghost" id="back1">← 처음으로</button></div>
+    <div class="card">
+      <div class="article-box"><div class="small">입력한 뉴스</div><div class="article-title" id="outTitle"></div><div class="article-link" id="outLink"></div><div class="badges"><span class="badge" id="outTheme"></span><span class="badge gray" id="outDirection"></span></div></div>
+      <div class="summary-grid" id="summaryGrid"></div>
+      <div class="actions"><button class="btn btn-soft" id="back2">다시 입력하기</button><button class="btn btn-primary" id="goDashboard">업종 영향 보기</button></div>
+    </div>
+  </section>
+
+  <section class="screen" id="dashboard">
+    <div class="topbar"><div class="title"><h2>업종별 영향 분석</h2><p>뉴스가 어떤 업종에 긍정·부정·변동성 요인으로 작용할 수 있는지 정리했습니다.</p></div><button class="ghost" id="backSummary">← 요약으로</button></div>
+    <div class="dash">
+      <div class="flow" id="flow"></div>
+      <div class="impact-table">
+        <div class="impact-box good"><h3>📈 긍정 가능 업종</h3><ul id="positiveList"></ul></div>
+        <div class="impact-box bad"><h3>📉 부정 가능 업종</h3><ul id="negativeList"></ul></div>
+        <div class="impact-box watch"><h3>⚠️ 변동성 확대</h3><ul id="volatileList"></ul></div>
+      </div>
+      <div class="two">
+        <div class="card"><h3 class="section-title">개미 투자자 체크포인트</h3><div class="checklist" id="checklist"></div></div>
+        <div class="card"><h3 class="section-title">확인할 시장 지표</h3><div class="signal" id="signals"></div></div>
+      </div>
+      <div class="disclaimer">본 화면은 뉴스 해석과 학습을 위한 보조 도구이며, 특정 종목의 매수·매도 추천이 아닙니다.</div>
+    </div>
+  </section>
+</div></div>
+<script>
+const DATA={
+  rate:{theme:'금리·통화정책',flow:['금리 기대 변화','할인율 변화','성장주/채권 영향','증시 밸류에이션 조정'],positive:['은행·보험: 금리 상승 시 이자마진 기대','단기채·현금성 자산: 방어적 선택지로 관심','가치주·배당주: 성장주 대비 상대적 선호 가능'],negative:['성장주·기술주: 높은 할인율은 밸류에이션 부담','부동산·리츠: 자금조달 비용 상승 부담','부채비율 높은 기업: 이자비용 증가 우려'],volatile:['나스닥·코스닥 성장주','2차전지·바이오 등 장기 성장 기대 업종','금리 민감 부동산 관련주'],signals:['미국 10년물 국채금리','FOMC 발언과 점도표','CPI/PCE 물가 지표','원·달러 환율'],summary:['금리 기대 변화는 주식시장의 할인율을 바꿉니다.','성장주는 미래 이익 비중이 커서 금리 변화에 민감합니다.','금리 인하 기대가 후퇴하면 위험자산 선호가 약해질 수 있습니다.']},
+  fx:{theme:'환율·외환',flow:['환율 변화','수입원가/수출환산익 변화','외국인 수급 변화','업종별 주가 차별화'],positive:['수출주: 원화 약세 시 환산이익 개선 기대','자동차·IT 수출기업: 가격경쟁력 개선 가능','달러 매출 비중 높은 기업'],negative:['항공·여행: 달러 비용과 유류비 부담','수입 원재료 비중 높은 음식료·유통','외화부채 많은 기업'],volatile:['외국인 수급 민감 대형주','항공·여행·면세','수출주와 내수주의 상대 강도'],signals:['원·달러 환율','달러인덱스 DXY','외국인 순매수/순매도','무역수지'],summary:['환율은 수출기업과 수입기업에 반대 방향으로 영향을 줍니다.','원화 약세는 수출주에 유리할 수 있지만 수입물가 부담을 키웁니다.','환율 급등은 외국인 수급 변동성을 높일 수 있습니다.']},
+  oil:{theme:'유가·원자재',flow:['유가 변화','연료비/생산비 변화','물가 압력 변화','업종별 수익성 차별화'],positive:['정유·에너지: 유가 상승 수혜 기대','방산·자원개발: 지정학 리스크 때 관심 확대','조선 일부: 에너지 투자 확대 기대'],negative:['항공·운송: 연료비 부담 증가','화학: 원재료 비용 상승 부담','소비재: 물가 부담에 소비 둔화 가능'],volatile:['정유·항공 동시 변동성','인플레이션 민감 성장주','원자재 ETF 관련 종목'],signals:['WTI/브렌트유 가격','천연가스 가격','기대인플레이션','중동 지정학 뉴스'],summary:['유가 상승은 에너지 기업에는 호재일 수 있지만 비용 부담 업종에는 악재입니다.','유가가 물가를 자극하면 금리 인하 기대가 약해질 수 있습니다.','업종별로 수혜와 피해가 뚜렷하게 갈리는 뉴스입니다.']},
+  trade:{theme:'무역·공급망',flow:['관세/규제 변화','조달비용 변화','기업 실적 전망 변화','관련 업종 재평가'],positive:['국산 대체재 기업: 공급망 재편 수혜 가능','일부 소재·부품·장비 기업','방어적 내수 업종'],negative:['수출 의존 기업: 관세와 규제 부담','중국 매출 비중 높은 기업','부품 수입 의존 제조업'],volatile:['반도체·전기차·배터리 공급망','중국 소비주','수출 대형주'],signals:['관세 발표 내용','수출입 지표','PMI 제조업 지수','주요국 정책 발표'],summary:['무역 뉴스는 특정 업종의 매출과 비용 구조를 직접 바꿀 수 있습니다.','공급망 차질은 생산 지연과 원가 상승으로 이어질 수 있습니다.','단기 이슈인지 구조적 재편인지 구분하는 것이 중요합니다.']},
+  earnings:{theme:'실적·가이던스',flow:['실적 발표','이익 전망 조정','밸류에이션 재평가','주가 방향성 변화'],positive:['실적 상향 기업과 동종 업종','마진 개선 업종','구조적 성장 확인 기업'],negative:['어닝쇼크 기업','가이던스 하향 업종','비용 증가가 큰 기업'],volatile:['실적 발표 직후 개별주','컨센서스 차이가 큰 종목','테마주'],signals:['매출 성장률','영업이익률','가이던스 변화','컨센서스 대비 차이'],summary:['실적 뉴스는 시장 전체보다 개별 기업과 업종에 직접적으로 작용합니다.','주가는 실적의 절대값보다 기대 대비 차이에 더 민감합니다.','가이던스 변화가 다음 주가 흐름의 핵심일 수 있습니다.']}
+};
+const home=document.getElementById('home'),summary=document.getElementById('summary'),dashboard=document.getElementById('dashboard');
+const newsTitle=document.getElementById('newsTitle'),newsLink=document.getElementById('newsLink'),tickerHint=document.getElementById('tickerHint'),homeWarn=document.getElementById('homeWarn');
+let analysis=null;
+function show(s){[home,summary,dashboard].forEach(x=>x.classList.remove('active'));s.classList.add('active')}
+function has(t,arr){return arr.some(k=>t.includes(k))}
+function detect(){const t=(newsTitle.value+' '+newsLink.value+' '+tickerHint.value).toLowerCase();
+ if(has(t,['금리','연준','fomc','국채','인하','인상','동결','rate','fed']))return'rate';
+ if(has(t,['환율','달러','원화','외환','usd','dollar','fx']))return'fx';
+ if(has(t,['유가','원유','석유','중동','전쟁','oil','crude']))return'oil';
+ if(has(t,['실적','어닝','가이던스','매출','영업이익','컨센서스','earnings']))return'earnings';
+ return'trade';}
+function direction(){const t=(newsTitle.value+' '+tickerHint.value).toLowerCase();
+ if(has(t,['급등','상승','강세','인상','호조','상향','수혜']))return'상승/호재성 신호';
+ if(has(t,['급락','하락','약세','인하','둔화','쇼크','하향','우려','부담']))return'하락/리스크 신호';
+ if(has(t,['동결','유지','보합']))return'관망/중립 신호';
+ return'방향성 추가 확인 필요';}
+function build(){const key=detect(),base=DATA[key],dir=direction();return{key,...base,dir,title:newsTitle.value.trim(),link:newsLink.value.trim(),hint:tickerHint.value.trim()}}
+function renderSummary(){document.getElementById('outTitle').textContent=analysis.title;document.getElementById('outLink').textContent=analysis.link;document.getElementById('outTheme').textContent=analysis.theme;document.getElementById('outDirection').textContent=analysis.dir;const box=document.getElementById('summaryGrid');box.innerHTML='';analysis.summary.forEach((s,i)=>{box.innerHTML+=`<div class="summary-item"><div class="num">${i+1}</div><h3>${['핵심 변수','시장 해석','투자 관점'][i]}</h3><p>${s}</p></div>`})}
+function renderDash(){const flow=document.getElementById('flow');flow.innerHTML='';analysis.flow.forEach((f,i)=>{flow.innerHTML+=`<span>${f}</span>${i<analysis.flow.length-1?'<span class="arrow">→</span>':''}`});fill('positiveList',analysis.positive);fill('negativeList',analysis.negative);fill('volatileList',analysis.volatile);const checklist=document.getElementById('checklist');checklist.innerHTML='';[['🔍','이미 반영됐는가?','뉴스가 나오기 전부터 관련 업종 주가가 이미 움직였는지 확인합니다.'],['📊','실적에 연결되는가?','단순 기대감인지, 매출·마진·비용에 실제로 영향을 주는지 구분합니다.'],['⏱️','단기 이슈인가?','하루짜리 이벤트인지, 몇 분기 동안 이어질 구조적 변화인지 봅니다.'],['⚖️','수혜와 피해가 갈리는가?','같은 뉴스도 업종별로 반대 효과가 날 수 있습니다.']].forEach(x=>checklist.innerHTML+=`<div class="check"><div class="icon">${x[0]}</div><div><strong>${x[1]}</strong><p>${x[2]}</p></div></div>`);const signals=document.getElementById('signals');signals.innerHTML='';analysis.signals.forEach(s=>signals.innerHTML+=`<div class="signal-row"><span>${s}</span><span class="value">후속 확인 필요</span></div>`)}
+function fill(id,arr){document.getElementById(id).innerHTML=arr.map(x=>`<li>${x}</li>`).join('')}
+document.getElementById('analyzeBtn').onclick=()=>{if(!newsTitle.value.trim()){homeWarn.textContent='기사 제목을 입력해 주세요.';return}homeWarn.textContent='';analysis=build();renderSummary();show(summary)};
+document.getElementById('goDashboard').onclick=()=>{renderDash();show(dashboard)};
+document.getElementById('back1').onclick=()=>show(home);document.getElementById('back2').onclick=()=>show(home);document.getElementById('backSummary').onclick=()=>show(summary);
+</script>
+</body>
+</html>
